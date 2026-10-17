@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Order extends Model
 {
-    public const STATUSES = ['pending', 'processing', 'completed'];
+    public const STATUSES = ['pending', 'confirmed', 'cancelled', 'processing', 'completed'];
 
     protected $guarded = [];
 

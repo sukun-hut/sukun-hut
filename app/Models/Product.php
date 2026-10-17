@@ -23,6 +23,11 @@ class Product extends Model
         return $this->hasMany(ProductImage::class)->orderBy('position')->orderBy('id');
     }
 
+    public function variations(): HasMany
+    {
+        return $this->hasMany(ProductVariation::class)->orderBy('position')->orderBy('id');
+    }
+
     public function scopeActive(Builder $q): Builder
     {
         return $q->where('is_active', true);
@@ -42,6 +47,15 @@ class Product extends Model
             'in_stock' => $this->in_stock,
             'category' => $this->category?->only('name', 'slug'),
             'images' => $this->images->map(fn ($i) => $i->url)->values()->all(),
+            'variations' => $this->relationLoaded('variations')
+                ? $this->variations->map(fn ($v) => [
+                    'id' => $v->id,
+                    'name' => $v->name,
+                    'price' => $v->price,
+                    'old_price' => $v->old_price,
+                    'in_stock' => (bool) $v->in_stock,
+                ])->values()->all()
+                : [],
         ];
     }
 }

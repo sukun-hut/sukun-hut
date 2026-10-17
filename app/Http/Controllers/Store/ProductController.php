@@ -12,10 +12,10 @@ class ProductController extends Controller
     public function show(Product $product)
     {
         abort_unless($product->is_active, 404);
-        $product->load(['category', 'images']);
+        $product->load(['category', 'images', 'variations']);
         $data = $product->forStore();
 
-        $related = Product::active()->with(['category', 'images'])
+        $related = Product::active()->with(['category', 'images', 'variations'])
             ->where('id', '!=', $product->id)
             ->when($product->category_id, fn ($b) => $b->where('category_id', $product->category_id))
             ->latest('id')->limit(4)->get()->map->forStore();

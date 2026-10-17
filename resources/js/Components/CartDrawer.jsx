@@ -13,7 +13,10 @@ export default function CartDrawer() {
         <>
             <div className={`ov${c.open ? ' open' : ''}`} onClick={close} />
             <aside className={`dr${c.open ? ' open' : ''}`} aria-label="কার্ট">
-                <div className="dh"><h2>আপনার কার্ট</h2><button className="x" onClick={close} aria-label="বন্ধ করুন">✕</button></div>
+                <div className="dh">
+                    <h2>আপনার কার্ট</h2>
+                    <button className="x" onClick={close} aria-label="বন্ধ করুন">✕</button>
+                </div>
                 <div className="dpn">
                     {c.items.length === 0 ? (
                         <>
@@ -22,25 +25,37 @@ export default function CartDrawer() {
                         </>
                     ) : (
                         <>
-                            {c.items.map((i) => (
-                                <div className="ci" key={i.id}>
-                                    <div className="e" style={{ background: `hsl(${hue(i.id)} 45% 88%)` }}><Thumb src={i.image} emoji={i.emoji} /></div>
-                                    <div>
-                                        <b>{i.name}</b>
-                                        <div className="q">
-                                            <button onClick={() => c.setQty(i.id, i.qty - 1)} aria-label="কমান">−</button>
-                                            {bn(i.qty)}
-                                            <button onClick={() => c.setQty(i.id, i.qty + 1)} aria-label="বাড়ান">+</button>
+                            {c.items.map((i) => {
+                                const itemKey = i.key || String(i.id);
+                                return (
+                                    <div className="ci" key={itemKey}>
+                                        <div className="e" style={{ background: `hsl(${hue(i.id)} 45% 88%)` }}>
+                                            <Thumb src={i.image} emoji={i.emoji} />
                                         </div>
+                                        <div>
+                                            <b>{i.name}</b>
+                                            {i.variation_name && (
+                                                <small style={{ display: 'block', color: 'var(--pri)', fontWeight: 600 }}>
+                                                    {i.variation_name}
+                                                </small>
+                                            )}
+                                            <div className="q">
+                                                <button onClick={() => c.setQty(itemKey, i.qty - 1)} aria-label="কমান">−</button>
+                                                {bn(i.qty)}
+                                                <button onClick={() => c.setQty(itemKey, i.qty + 1)} aria-label="বাড়ান">+</button>
+                                            </div>
+                                        </div>
+                                        <b>{tk(i.price * i.qty)}</b>
                                     </div>
-                                    <b>{tk(i.price * i.qty)}</b>
-                                </div>
-                            ))}
+                                );
+                            })}
                             <div className="sm">
                                 <div>সাবটোটাল<span>{tk(c.subtotal)}</span></div>
                                 <div>ডেলিভারি (ঢাকার ভেতরে)<span>{fee ? tk(fee) : 'ফ্রি'}</span></div>
                             </div>
-                            <button className="btn" style={{ width: '100%' }} onClick={() => { close(); router.get('/checkout'); }}>চেকআউটে যান</button>
+                            <button className="btn" style={{ width: '100%' }} onClick={() => { close(); router.get('/checkout'); }}>
+                                চেকআউটে যান
+                            </button>
                         </>
                     )}
                 </div>

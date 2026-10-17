@@ -15,7 +15,7 @@ class DashboardController extends Controller
             'stats' => [
                 'today' => Order::whereDate('created_at', today())->count(),
                 'pending' => Order::where('status', 'pending')->count(),
-                'sales' => (int) Order::where('status', 'completed')->sum('total'),
+                'sales' => (int) Order::whereIn('status', ['confirmed', 'completed'])->sum('total'),
                 'products' => Product::count(),
                 'out' => Product::where('in_stock', false)->count(),
             ],

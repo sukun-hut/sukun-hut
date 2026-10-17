@@ -29,7 +29,7 @@ class ProductController extends Controller
     public function index()
     {
         return Inertia::render('Admin/Products/Index', [
-            'products' => Product::with(['category', 'images'])->latest('id')->get()
+            'products' => Product::with(['category', 'images', 'variations'])->latest('id')->get()
                 ->map(fn ($p) => [...$p->forStore(), 'is_active' => $p->is_active]),
         ]);
     }
@@ -41,7 +41,7 @@ class ProductController extends Controller
 
     public function edit(Product $product)
     {
-        $product->load('images');
+        $product->load(['images', 'variations']);
 
         return Inertia::render('Admin/Products/Form', [
             'product' => [
@@ -56,6 +56,13 @@ class ProductController extends Controller
                 'in_stock' => $product->in_stock,
                 'is_active' => $product->is_active,
                 'images' => $product->images->map(fn ($i) => ['id' => $i->id, 'url' => $i->url])->values(),
+                'variations' => $product->variations->map(fn ($v) => [
+                    'id' => $v->id,
+                    'name' => $v->name,
+                    'price' => $v->price,
+                    'old_price' => $v->old_price,
+                    'in_stock' => (bool) $v->in_stock,
+                ])->values(),
             ],
             'categories' => $this->categories(),
         ]);
@@ -66,6 +73,7 @@ class ProductController extends Controller
         $d = $this->validated($request);
         $product = Product::create([...$d, 'slug' => Slug::make($d['slug'] ?: $d['name'], 'products')]);
         $this->saveImages($request, $product);
+        $this->saveVariations($request, $product);
 
         return redirect()->route('admin.products.index')->with('success', 'পণ্য যোগ হয়েছে');
     }
@@ -75,6 +83,7 @@ class ProductController extends Controller
         $d = $this->validated($request);
         $product->update([...$d, 'slug' => $d['slug'] ? Slug::make($d['slug'], 'products', $product->id) : $product->slug]);
         $this->saveImages($request, $product);
+        $this->saveVariations($request, $product);
 
         return redirect()->route('admin.products.index')->with('success', 'পণ্য আপডেট হয়েছে');
     }
@@ -139,9 +148,64 @@ class ProductController extends Controller
     private function saveImages(Request $request, Product $product): void
     {
         $pos = (int) $product->images()->max('position');
-        foreach ($request->file('images', []) as $file) {
-            $product->images()->create(['path' => $file->store('products', 'public'), 'position' => ++$pos]);
+        if ($request->hasFile('images')) {
+            $files = $request->file('images');
+            if (! is_array($files)) {
+                $files = [$files];
+            }
+            foreach ($files as $file) {
+                if ($file && $file->isValid()) {
+                    $path = $file->store('products', 'public');
+                    $product->images()->create(['path' => $path, 'position' => ++$pos]);
+                }
+            }
         }
+    }
+
+    private function saveVariations(Request $request, Product $product): void
+    {
+        $raw = $request->input('variations');
+        if (is_string($raw)) {
+            $raw = json_decode($raw, true) ?: [];
+        }
+        if (! is_array($raw)) {
+            $raw = [];
+        }
+
+        $keepIds = [];
+        $pos = 0;
+        foreach ($raw as $v) {
+            $name = trim($v['name'] ?? '');
+            $price = (int) ($v['price'] ?? 0);
+            if ($name === '' || $price <= 0) {
+                continue;
+            }
+            $oldPrice = ! empty($v['old_price']) ? (int) $v['old_price'] : null;
+            $inStock = isset($v['in_stock']) ? (bool) $v['in_stock'] : true;
+            $vId = ! empty($v['id']) ? (int) $v['id'] : null;
+
+            if ($vId && $existing = $product->variations()->find($vId)) {
+                $existing->update([
+                    'name' => $name,
+                    'price' => $price,
+                    'old_price' => $oldPrice,
+                    'in_stock' => $inStock,
+                    'position' => $pos++,
+                ]);
+                $keepIds[] = $existing->id;
+            } else {
+                $created = $product->variations()->create([
+                    'name' => $name,
+                    'price' => $price,
+                    'old_price' => $oldPrice,
+                    'in_stock' => $inStock,
+                    'position' => $pos++,
+                ]);
+                $keepIds[] = $created->id;
+            }
+        }
+
+        $product->variations()->whereNotIn('id', $keepIds)->delete();
     }
 
     private function categories()

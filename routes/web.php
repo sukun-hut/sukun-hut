@@ -26,6 +26,9 @@ Route::domain(config('shop.admin_domain'))->name('admin.')->group(function () {
 
         Route::get('orders', [Admin\OrderController::class, 'index'])->name('orders.index');
         Route::patch('orders/{order}/status', [Admin\OrderController::class, 'status'])->name('orders.status');
+
+        Route::get('settings', [Admin\SettingController::class, 'index'])->name('settings.index');
+        Route::post('settings', [Admin\SettingController::class, 'update'])->name('settings.update');
     });
 });
 
@@ -68,6 +71,9 @@ if (config('shop.admin_same_domain')) {
 
             Route::get('orders', [Admin\OrderController::class, 'index'])->name('orders.index');
             Route::patch('orders/{order}/status', [Admin\OrderController::class, 'status'])->name('orders.status');
+
+            Route::get('settings', [Admin\SettingController::class, 'index'])->name('settings.index');
+            Route::post('settings', [Admin\SettingController::class, 'update'])->name('settings.update');
         });
     });
 }

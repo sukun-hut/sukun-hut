@@ -17,10 +17,13 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         return array_merge(parent::share($request), [
-            'shop' => fn () => collect(config('shop'))->only([
-                'name', 'tagline', 'subtagline', 'address', 'phone', 'phone_display', 'whatsapp', 'email',
-                'facebook', 'messenger', 'bkash', 'nagad', 'delivery_in', 'delivery_out', 'free_over', 'fb_pixel',
-            ])->all(),
+            'shop' => fn () => array_merge(
+                collect(config('shop'))->only([
+                    'name', 'tagline', 'subtagline', 'address', 'phone', 'phone_display', 'whatsapp', 'email',
+                    'facebook', 'messenger', 'bkash', 'nagad', 'delivery_in', 'delivery_out', 'free_over', 'fb_pixel',
+                ])->all(),
+                \App\Models\Setting::deliverySettings()
+            ),
             'siteUrl' => config('app.url'),
             'auth' => ['user' => fn () => $request->user()?->only('id', 'name', 'email')],
             'flash' => [

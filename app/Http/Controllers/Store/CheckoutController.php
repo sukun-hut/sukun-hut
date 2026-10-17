@@ -21,8 +21,6 @@ class CheckoutController extends Controller
         'phone.regex' => 'সঠিক ১১ সংখ্যার মোবাইল নম্বর দিন (01XXXXXXXXX)',
         'address.required' => 'পূর্ণ ঠিকানা লিখুন',
         'address.min' => 'থানা ও জেলাসহ পূর্ণ ঠিকানা লিখুন',
-        'trx_id.required_unless' => 'পেমেন্টের TrxID দিন',
-        'trx_id.min' => 'TrxID সঠিক নয়',
         'items.required' => 'কার্ট খালি',
         'items.min' => 'কার্ট খালি',
     ];
@@ -31,8 +29,22 @@ class CheckoutController extends Controller
     {
         $buy = null;
         if ($slug = $request->query('buy')) {
-            $p = Product::active()->with(['category', 'images'])->where('slug', $slug)->first();
-            $buy = $p?->forStore();
+            $p = Product::active()->with(['category', 'images', 'variations'])->where('slug', $slug)->first();
+            if ($p) {
+                $buy = $p->forStore();
+                if ($vId = $request->query('v')) {
+                    $selectedVar = $p->variations->firstWhere('id', (int) $vId);
+                    if ($selectedVar) {
+                        $buy['selected_variation'] = [
+                            'id' => $selectedVar->id,
+                            'name' => $selectedVar->name,
+                            'price' => $selectedVar->price,
+                            'old_price' => $selectedVar->old_price,
+                            'in_stock' => $selectedVar->in_stock,
+                        ];
+                    }
+                }
+            }
         }
 
         return Inertia::render('Store/Checkout', ['buy' => $buy])
@@ -46,33 +58,56 @@ class CheckoutController extends Controller
             'phone' => ['required', 'regex:/^01[3-9]\d{8}$/'],
             'address' => 'required|string|min:10|max:500',
             'zone' => 'required|in:in,out',
-            'payment_method' => 'required|in:cod,bkash,nagad',
-            'trx_id' => 'required_unless:payment_method,cod|nullable|string|min:6|max:40',
+            'payment_method' => 'required|in:cod',
             'coupon' => 'nullable|string|max:30',
             'items' => 'required|array|min:1|max:30',
             'items.*.id' => 'required|integer',
+            'items.*.variation_id' => 'nullable|integer',
             'items.*.qty' => 'required|integer|min:1|max:20',
         ], self::MESSAGES);
 
-        $qty = [];
-        foreach ($d['items'] as $i) {
-            $qty[$i['id']] = min(20, ($qty[$i['id']] ?? 0) + $i['qty']);
-        }
-        $products = Product::active()->whereIn('id', array_keys($qty))->get()->keyBy('id');
+        $productIds = collect($d['items'])->pluck('id')->unique()->all();
+        $products = Product::active()->with('variations')->whereIn('id', $productIds)->get()->keyBy('id');
 
+        $preparedItems = [];
         $subtotal = 0;
-        foreach ($qty as $id => $q) {
-            $p = $products->get($id);
+
+        foreach ($d['items'] as $item) {
+            $p = $products->get($item['id']);
             if (! $p || ! $p->in_stock) {
                 throw ValidationException::withMessages(['items' => 'কিছু পণ্য এখন স্টকে নেই। কার্ট থেকে সরিয়ে আবার চেষ্টা করুন।']);
             }
-            $subtotal += $p->price * $q;
+
+            $variationId = ! empty($item['variation_id']) ? (int) $item['variation_id'] : null;
+            $variationName = null;
+            $price = $p->price;
+
+            if ($variationId) {
+                $var = $p->variations->firstWhere('id', $variationId);
+                if (! $var || ! $var->in_stock) {
+                    throw ValidationException::withMessages(['items' => 'নির্বাচিত ভেরিয়েশনটি বর্তমানে স্টকে নেই।']);
+                }
+                $variationName = $var->name;
+                $price = $var->price;
+            }
+
+            $qty = min(20, max(1, (int) $item['qty']));
+            $subtotal += $price * $qty;
+
+            $preparedItems[] = [
+                'product_id' => $p->id,
+                'variation_id' => $variationId,
+                'product_name' => $p->name,
+                'variation_name' => $variationName,
+                'price' => $price,
+                'quantity' => $qty,
+            ];
         }
 
         $fee = Shop::delivery($subtotal, $d['zone']);
         $discount = Shop::discount($subtotal, $d['coupon'] ?? null);
 
-        $order = DB::transaction(function () use ($d, $qty, $products, $subtotal, $fee, $discount) {
+        $order = DB::transaction(function () use ($d, $preparedItems, $subtotal, $fee, $discount) {
             $order = Order::create([
                 'number' => $this->number(),
                 'token' => Str::random(24),
@@ -80,25 +115,29 @@ class CheckoutController extends Controller
                 'phone' => $d['phone'],
                 'address' => $d['address'],
                 'zone' => $d['zone'],
-                'payment_method' => $d['payment_method'],
-                'trx_id' => $d['payment_method'] === 'cod' ? null : ($d['trx_id'] ?? null),
+                'payment_method' => 'cod',
+                'trx_id' => null,
                 'subtotal' => $subtotal,
                 'delivery_fee' => $fee,
                 'discount' => $discount,
                 'total' => $subtotal + $fee - $discount,
                 'status' => 'pending',
             ]);
-            foreach ($qty as $id => $q) {
-                $order->items()->create([
-                    'product_id' => $id,
-                    'product_name' => $products[$id]->name,
-                    'price' => $products[$id]->price,
-                    'quantity' => $q,
-                ]);
+
+            foreach ($preparedItems as $pi) {
+                $order->items()->create($pi);
             }
 
             return $order;
         });
+
+        session()->flash('confirmed_order', [
+            'number' => $order->number,
+            'name' => $order->name,
+            'phone' => $order->phone,
+            'total' => $order->total,
+            'token' => $order->token,
+        ]);
 
         return redirect()->route('order.thanks', $order->token);
     }
@@ -125,7 +164,12 @@ class CheckoutController extends Controller
             'delivery_fee' => $order->delivery_fee,
             'discount' => $order->discount,
             'total' => $order->total,
-            'items' => $order->items->map->only('product_name', 'price', 'quantity')->values(),
+            'items' => $order->items->map(fn ($i) => [
+                'product_name' => $i->product_name,
+                'variation_name' => $i->variation_name,
+                'price' => $i->price,
+                'quantity' => $i->quantity,
+            ])->values(),
         ]])->withViewData(['meta' => ['title' => 'অর্ডার সম্পন্ন – '.config('shop.name'), 'noindex' => true]]);
     }
 

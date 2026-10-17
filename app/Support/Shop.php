@@ -6,12 +6,13 @@ class Shop
 {
     public static function delivery(int $subtotal, string $zone): int
     {
-        $free = (int) config('shop.free_over');
+        $settings = \App\Models\Setting::deliverySettings();
+        $free = $settings['free_over'];
         if ($subtotal <= 0 || ($free > 0 && $subtotal >= $free)) {
             return 0;
         }
 
-        return $zone === 'out' ? (int) config('shop.delivery_out') : (int) config('shop.delivery_in');
+        return $zone === 'out' ? $settings['delivery_out'] : $settings['delivery_in'];
     }
 
     public static function couponPercent(?string $code): int

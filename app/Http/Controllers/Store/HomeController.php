@@ -17,7 +17,7 @@ class HomeController extends Controller
         $sort = $request->query('sort');
         $like = '%'.str_replace(['%', '_'], ['\%', '\_'], $q).'%';
 
-        $products = Product::active()->with(['category', 'images'])
+        $products = Product::active()->with(['category', 'images', 'variations'])
             ->when($cat, fn ($b) => $b->whereHas('category', fn ($c) => $c->where('slug', $cat)))
             ->when($q !== '', fn ($b) => $b->where(fn ($w) => $w
                 ->where('name', 'like', $like)

@@ -5,13 +5,15 @@ import { tk } from '../../../lib/format';
 
 export default function Index({ products }) {
     const { siteUrl } = usePage().props;
-    const del = (p) => { if (window.confirm(`"${p.name}" মুছে ফেলবেন?`)) router.delete(`/products/${p.id}`, { preserveScroll: true }); };
+    const path = window.location.pathname;
+    const pfx = path.startsWith('/admin') ? '/admin' : '';
+    const del = (p) => { if (window.confirm(`"${p.name}" মুছে ফেলবেন?`)) router.delete(`${pfx}/products/${p.id}`, { preserveScroll: true }); };
     return (
         <>
             <Head title="পণ্য" />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
                 <h1 style={{ fontSize: 28 }}>পণ্য</h1>
-                <Link className="btn" href="/products/create">নতুন পণ্য যোগ করুন</Link>
+                <Link className="btn" href={`${pfx}/products/create`}>নতুন পণ্য যোগ করুন</Link>
             </div>
             {products.length === 0 && <p className="empty">কোনো পণ্য নেই</p>}
             {products.map((p) => (
@@ -19,13 +21,19 @@ export default function Index({ products }) {
                     <div className="th"><Thumb src={p.images[0]} emoji={p.emoji} /></div>
                     <div style={{ flex: 1, minWidth: 160 }}>
                         <b>{p.name}</b>{!p.is_active && <small> (লুকানো)</small>}<br />
-                        <small style={{ color: 'var(--mut)' }}>{p.category?.name || 'ক্যাটাগরি নেই'}</small> <b>{tk(p.price)}</b>
+                        <small style={{ color: 'var(--mut)' }}>{p.category?.name || 'ক্যাটাগরি নেই'}</small>{' '}
+                        <b>{tk(p.price)}</b>
+                        {p.variations?.length > 0 && (
+                            <small style={{ color: 'var(--pri)', marginLeft: 8, fontWeight: 600 }}>
+                                ({p.variations.length.toLocaleString('bn-BD')}টি ভেরিয়েশন)
+                            </small>
+                        )}
                     </div>
-                    <button className={`stk ${p.in_stock ? 'in' : 'out'}`} style={{ cursor: 'pointer', padding: '4px 12px' }} onClick={() => router.patch(`/products/${p.id}/stock`, {}, { preserveScroll: true })}>
+                    <button className={`stk ${p.in_stock ? 'in' : 'out'}`} style={{ cursor: 'pointer', padding: '4px 12px' }} onClick={() => router.patch(`${pfx}/products/${p.id}/stock`, {}, { preserveScroll: true })}>
                         {p.in_stock ? 'স্টকে আছে' : 'স্টক নেই'}
                     </button>
                     <a className="mini" href={`${siteUrl}/product/${p.slug}`} target="_blank" rel="noopener">দেখুন</a>
-                    <Link className="mini" href={`/products/${p.id}/edit`}>এডিট</Link>
+                    <Link className="mini" href={`${pfx}/products/${p.id}/edit`}>এডিট</Link>
                     <button className="mini" onClick={() => del(p)}>মুছুন</button>
                 </div>
             ))}

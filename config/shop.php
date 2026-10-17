@@ -22,7 +22,7 @@ return [
     'messenger' => 'https://m.me/sukunhut1',
     'bkash' => env('SHOP_BKASH', '01568772054'),
     'nagad' => env('SHOP_NAGAD', '01568772054'),
-    'delivery_in' => (int) env('DELIVERY_IN', 60),
+    'delivery_in' => (int) env('DELIVERY_IN', 70),
     'delivery_out' => (int) env('DELIVERY_OUT', 120),
     'free_over' => (int) env('FREE_DELIVERY_OVER', 2000),
     'coupon_code' => env('COUPON_CODE', ''),
