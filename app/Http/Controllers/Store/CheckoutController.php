@@ -155,7 +155,7 @@ class CheckoutController extends Controller
             'token' => $order->token,
         ]);
 
-        return redirect()->route('order.thanks', $order->token);
+        return redirect()->to("/order/{$order->token}");
     }
 
     public function coupon(Request $request)

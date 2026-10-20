@@ -1,6 +1,7 @@
 import { Link, router, usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import CartDrawer from '../Components/CartDrawer';
+import { Icon } from '../Components/Icons';
 import ToastContainer from '../Components/ToastContainer';
 import { CartProvider, useCart } from '../lib/cart';
 import { bn, clean } from '../lib/format';
@@ -51,22 +52,26 @@ function Shell({ children }) {
                     <Link className="logo" href="/"><img src={shop.logo || '/images/logo.jpg'} alt={`${shop.name} লোগো`} width="44" height="44" /><b>{shop.name}</b></Link>
                     <input className="sr" type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="নাম বা ক্যাটাগরি খুঁজুন" aria-label="পণ্য খুঁজুন" />
 
-                    {/* PLUG & PLAY: Wishlist Header Button */}
+                    {/* PLUG & PLAY: Wishlist Header Button -> links to dedicated /wishlist page */}
                     {shop.features?.wishlist && (
-                        <button
-                            type="button"
+                        <Link
+                            href="/wishlist"
                             className="cb"
                             style={{
-                                background: filters?.wishlist ? 'var(--acc)' : 'var(--card)',
-                                color: filters?.wishlist ? '#12261f' : 'var(--ink)',
+                                background: window.location.pathname === '/wishlist' ? 'var(--acc)' : 'var(--card)',
+                                color: window.location.pathname === '/wishlist' ? '#12261f' : 'var(--ink)',
                                 border: '1px solid var(--line)',
                                 padding: '8px 14px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: 6,
+                                textDecoration: 'none',
                             }}
-                            onClick={showWishlistOnly}
-                            title="পছন্দের পণ্যের তালিকা দেখুন"
+                            title="পছন্দের তালিকা (Wishlist) দেখুন"
                         >
-                            ❤️ <span style={{ position: 'static', display: 'inline-block', marginLeft: 4 }}>{bn(wishlistCount)}</span>
-                        </button>
+                            <Icon name="heart" size={16} color={window.location.pathname === '/wishlist' ? '#12261f' : '#e11d48'} />
+                            <span style={{ position: 'static', display: 'inline-block' }}>{bn(wishlistCount)}</span>
+                        </Link>
                     )}
 
                     <button className="cb" onClick={() => cart.setOpen(true)} aria-label="কার্ট খুলুন">কার্ট<span>{bn(cart.count)}</span></button>
@@ -85,12 +90,6 @@ function Shell({ children }) {
                         <p>{shop.address}</p>
                         <p><a href={`tel:${shop.phone}`}>{shop.phone_display || shop.phone}</a></p>
                         <p><a href={`mailto:${shop.email}`}>{shop.email}</a></p>
-                        {/* PLUG & PLAY: Blog Link in footer */}
-                        {shop.features?.blog && (
-                            <p style={{ marginTop: 8 }}>
-                                <a href="/#blog" style={{ color: 'var(--acc)', fontWeight: 600 }}>📝 কেনাকাটার দরকারি টিপস ও ব্লগ</a>
-                            </p>
-                        )}
                     </div>
                     <div>
                         <h3>ডেলিভারি</h3>

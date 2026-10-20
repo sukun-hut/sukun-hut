@@ -64,7 +64,6 @@ class HandleInertiaRequests extends Middleware
                     'coupon' => Setting::getBool('feature_coupon', config('shop.features.coupon', true)),
                     'variation' => Setting::getBool('feature_variation', config('shop.features.variation', true)),
                     'review' => Setting::getBool('feature_review', config('shop.features.review', false)),
-                    'blog' => Setting::getBool('feature_blog', config('shop.features.blog', false)),
                     'wishlist' => Setting::getBool('feature_wishlist', config('shop.features.wishlist', false)),
                 ],
 

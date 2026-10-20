@@ -1,6 +1,7 @@
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import Thumb from '../../Components/Thumb';
+import { Icon } from '../../Components/Icons';
 import StoreLayout from '../../Layouts/StoreLayout';
 import { useCart } from '../../lib/cart';
 import { bn, csrf, delivery, hue, tk } from '../../lib/format';
@@ -85,9 +86,67 @@ export default function Checkout({ buy }) {
         }
     };
 
+    const handlePhoneChange = (val) => {
+        // Convert Bengali digits (০-৯) to English digits (0-9)
+        const converted = String(val).replace(/[০-৯]/g, (d) => '০১২৩৪৫৬৭৮৯'.indexOf(d));
+        // Strip everything except numbers (0-9) and limit to 11 digits
+        const onlyDigits = converted.replace(/\D/g, '').slice(0, 11);
+        form.setData('phone', onlyDigits);
+    };
+
     const submit = (e) => {
         e.preventDefault();
+
+        // 1. Client-side pre-validation with immediate Toast Error feedback
+        if (!d.name || !d.name.trim()) {
+            toast.error('অনুগ্রহ করে আপনার নাম লিখুন');
+            document.getElementById('name')?.focus();
+            return;
+        }
+
+        if (d.name.trim().length < 3) {
+            toast.error('নাম অন্তত ৩ অক্ষরের হতে হবে');
+            document.getElementById('name')?.focus();
+            return;
+        }
+
+        if (!d.phone || !d.phone.trim()) {
+            toast.error('অনুগ্রহ করে মোবাইল নম্বর লিখুন');
+            document.getElementById('phone')?.focus();
+            return;
+        }
+
+        if (!/^01[3-9]\d{8}$/.test(d.phone.trim())) {
+            toast.error('সঠিক ১১ সংখ্যার মোবাইল নম্বর দিন (যেমন: 017XXXXXXXX)');
+            document.getElementById('phone')?.focus();
+            return;
+        }
+
+        if (!d.address || !d.address.trim()) {
+            toast.error('অনুগ্রহ করে পূর্ণ ঠিকানা লিখুন (বাসা/রোড, থানা, জেলা)');
+            document.getElementById('address')?.focus();
+            return;
+        }
+
+        if (d.address.trim().length < 10) {
+            toast.error('থানা ও জেলাসহ পূর্ণ ঠিকানা বিস্তারিত লিখুন (অন্তত ১০ অক্ষর)');
+            document.getElementById('address')?.focus();
+            return;
+        }
+
+        if ((d.payment_method === 'bkash' || d.payment_method === 'nagad') && (!d.trx_id || !d.trx_id.trim())) {
+            toast.error('পেমেন্টের ট্রানজেকশন আইডি (TrxID) লিখুন');
+            document.getElementById('trx_id')?.focus();
+            return;
+        }
+
+        if (!lines || lines.length === 0) {
+            toast.error('আপনার কার্ট খালি। আগে পণ্য বাছাই করুন');
+            return;
+        }
+
         form.clearErrors();
+
         form.transform((x) => ({
             ...x,
             items: lines.map((l) => ({
@@ -95,19 +154,22 @@ export default function Checkout({ buy }) {
                 variation_id: l.variation_id || null,
                 qty: l.qty,
             })),
-        })).post('/checkout', {
+        }));
+
+        form.post('/checkout', {
             onSuccess: () => {
                 if (!buy) cart.clear();
+                toast.success('✓ আপনার অর্ডারটি সফলভাবে সম্পন্ন হয়েছে!');
             },
             onError: (errors) => {
                 const keys = Object.keys(errors || {});
-                if (keys.length) {
-                    // Scroll to first error field so the customer sees what went wrong
+                if (keys.length > 0) {
+                    const firstMsg = errors[keys[0]];
+                    toast.error(typeof firstMsg === 'string' ? firstMsg : 'ফর্মে কিছু তথ্য সঠিক নয়');
                     const el = document.getElementById(keys[0]);
                     (el || document.querySelector('.er:not(:empty)'))?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 } else {
-                    // Empty errors = network / CSRF(419) / server failure — show visible feedback
-                    setCMsg('দুঃখিত! অর্ডার সম্পন্ন করা যায়নি। পেজ রিফ্রেশ করে আবার চেষ্টা করুন।');
+                    toast.error('অর্ডার সম্পন্ন করা যায়নি। অনুগ্রহ করে পেজ রিফ্রেশ করে আবার চেষ্টা করুন।');
                 }
             },
         });
@@ -132,6 +194,26 @@ export default function Checkout({ buy }) {
                     rows={3}
                     value={d[id]}
                     onChange={(e) => form.setData(id, e.target.value)}
+                    {...props}
+                />
+            ) : id === 'phone' ? (
+                <input
+                    id="phone"
+                    type="tel"
+                    inputMode="numeric"
+                    autoComplete="tel"
+                    placeholder="01XXXXXXXXX"
+                    value={d.phone}
+                    onChange={(e) => handlePhoneChange(e.target.value)}
+                    onKeyDown={(e) => {
+                        // Allow navigation, delete, backspace, and shortcuts
+                        if (['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'Enter'].includes(e.key)) return;
+                        if (e.ctrlKey || e.metaKey) return;
+                        // Block any non-digit character directly
+                        if (!/^[0-9০-৯]$/.test(e.key)) {
+                            e.preventDefault();
+                        }
+                    }}
                     {...props}
                 />
             ) : (
@@ -373,8 +455,9 @@ export default function Checkout({ buy }) {
                         <span>{fee ? tk(fee) : <span style={{ color: 'var(--pri)', fontWeight: 600 }}>ফ্রি ডেলিভারি</span>}</span>
                     </div>
                     {shop.free_over > 0 && sub < shop.free_over && fee > 0 && (
-                        <div style={{ fontSize: 12.5, color: 'var(--mut)' }}>
-                            <span>💡 আর {tk(shop.free_over - sub)} এর পণ্য যোগ করলেই ফ্রি ডেলিভারি!</span>
+                        <div style={{ fontSize: 12.5, color: 'var(--mut)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <Icon name="lightbulb" size={14} color="var(--pri)" />
+                            <span>আর {tk(shop.free_over - sub)} এর পণ্য যোগ করলেই ফ্রি ডেলিভারি!</span>
                         </div>
                     )}
                     {disc > 0 && <div>কুপন ছাড়<span>-{tk(disc)}</span></div>}
@@ -382,6 +465,7 @@ export default function Checkout({ buy }) {
                 </div>
 
                 <button
+                    type="submit"
                     className="btn"
                     style={{ width: '100%', padding: '14px 20px', fontSize: 18 }}
                     disabled={form.processing}

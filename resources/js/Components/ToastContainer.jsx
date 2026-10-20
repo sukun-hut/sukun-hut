@@ -1,5 +1,15 @@
 import { usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
+import { Icon } from './Icons';
+
+// Global cache outside component lifecycle to prevent duplicate toasts across re-renders
+let globalLastToast = { message: '', time: 0 };
+
+const normalizeToastText = (str) =>
+    String(str || '')
+        .replace(/^[✓✕ℹ❤️\s]+/, '')
+        .replace(/[।\.!\s]+$/, '')
+        .trim();
 
 export default function ToastContainer() {
     const { flash } = usePage().props;
@@ -7,8 +17,23 @@ export default function ToastContainer() {
 
     const addToast = (message, type = 'success') => {
         if (!message) return;
-        const id = Date.now() + Math.random();
-        setToasts((prev) => [...prev, { id, message, type }]);
+        const normalized = normalizeToastText(message);
+        const now = Date.now();
+
+        // Prevent duplicate toast if identical message was triggered within 2.5 seconds
+        if (globalLastToast.message === normalized && now - globalLastToast.time < 2500) {
+            return;
+        }
+        globalLastToast = { message: normalized, time: now };
+
+        const id = now + Math.random();
+        setToasts((prev) => {
+            // Deduplicate if already present in active toast stack
+            if (prev.some((t) => normalizeToastText(t.message) === normalized)) {
+                return prev;
+            }
+            return [...prev, { id, message, type }];
+        });
 
         setTimeout(() => {
             setToasts((prev) => prev.filter((t) => t.id !== id));
@@ -39,16 +64,10 @@ export default function ToastContainer() {
 
     if (toasts.length === 0) return null;
 
-    const ICONS = {
-        success: '✓',
-        error: '✕',
-        info: 'ℹ',
-    };
-
     const COLORS = {
-        success: { bg: '#12261f', border: 'var(--pri, #0d7a5f)', iconBg: 'var(--pri, #0d7a5f)' },
-        error: { bg: '#2b1215', border: '#c0392b', iconBg: '#c0392b' },
-        info: { bg: '#102230', border: 'var(--acc, #e9a820)', iconBg: 'var(--acc, #e9a820)' },
+        success: { bg: '#0f291e', border: 'var(--pri, #0d7a5f)', iconName: 'check', iconBg: 'var(--pri, #0d7a5f)' },
+        error: { bg: '#2b1215', border: '#c0392b', iconName: 'x', iconBg: '#c0392b' },
+        info: { bg: '#102230', border: 'var(--acc, #e9a820)', iconName: 'lightbulb', iconBg: 'var(--acc, #e9a820)' },
     };
 
     return (
@@ -99,12 +118,10 @@ export default function ToastContainer() {
                                 display: 'inline-flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                fontSize: 13,
-                                fontWeight: 800,
                                 flexShrink: 0,
                             }}
                         >
-                            {ICONS[t.type] || '✓'}
+                            <Icon name={conf.iconName} size={14} color="#fff" />
                         </span>
                         <span>{t.message}</span>
                     </div>

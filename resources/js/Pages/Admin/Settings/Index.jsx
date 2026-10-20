@@ -1,16 +1,17 @@
 import { Head, useForm } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import AdminLayout from '../../../Layouts/AdminLayout';
+import { Icon } from '../../../Components/Icons';
 import { tk } from '../../../lib/format';
 import { toast } from '../../../lib/toast';
 
 const TABS = [
-    { id: 'branding', label: '🏢 ব্র্যান্ডিং', icon: '🏢' },
-    { id: 'theme', label: '🎨 থিম ও কালার', icon: '🎨' },
-    { id: 'store', label: '🛒 স্টোর ও ডেলিভারি', icon: '🛒' },
-    { id: 'payment', label: '💳 পেমেন্ট গেটওয়ে', icon: '💳' },
-    { id: 'features', label: '🧩 ফিচার মডিউল', icon: '🧩' },
-    { id: 'data', label: '🗄️ ডেমো ডাটা', icon: '🗄️' },
+    { id: 'branding', label: 'ব্র্যান্ডিং', icon: 'building' },
+    { id: 'theme', label: 'থিম ও কালার', icon: 'palette' },
+    { id: 'store', label: 'স্টোর ও ডেলিভারি', icon: 'cart' },
+    { id: 'payment', label: 'পেমেন্ট গেটওয়ে', icon: 'payment' },
+    { id: 'features', label: 'ফিচার মডিউল', icon: 'features' },
+    { id: 'data', label: 'ডেমো ডাটা', icon: 'database' },
 ];
 
 const PRESETS = [
@@ -67,9 +68,6 @@ export default function SettingsIndex({ settings }) {
         form.post(`${pfx}/settings?tab=${tab}`, {
             preserveScroll: true,
             preserveState: true,
-            onSuccess: () => {
-                toast.success('✓ সেটিংস সফলভাবে সংরক্ষিত হয়েছে');
-            },
             onError: (errs) => {
                 const first = Object.values(errs || {})[0];
                 toast.error(first || 'সেটিংস সংরক্ষণে কিছু ত্রুটি রয়েছে');
@@ -90,7 +88,7 @@ export default function SettingsIndex({ settings }) {
         }
     }, [d.primary_color, d.secondary_color]);
 
-    const Toggle = ({ name, label, hint }) => (
+    const Toggle = ({ name, label, hint, icon }) => (
         <label
             style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
@@ -98,9 +96,12 @@ export default function SettingsIndex({ settings }) {
                 cursor: 'pointer', marginBottom: 8,
             }}
         >
-            <span>
-                <strong style={{ display: 'block' }}>{label}</strong>
-                {hint && <small style={{ color: 'var(--mut)' }}>{hint}</small>}
+            <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                {icon && <Icon name={icon} size={18} color="var(--pri)" />}
+                <span>
+                    <strong style={{ display: 'block' }}>{label}</strong>
+                    {hint && <small style={{ color: 'var(--mut)' }}>{hint}</small>}
+                </span>
             </span>
             <input
                 type="checkbox"
@@ -121,7 +122,7 @@ export default function SettingsIndex({ settings }) {
             </p>
 
             {/* TAB NAVIGATION */}
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 20, borderBottom: '2px solid var(--line)', paddingBottom: 10 }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20, borderBottom: '2px solid var(--line)', paddingBottom: 10 }}>
                 {TABS.map((t) => (
                     <button
                         key={t.id}
@@ -134,9 +135,13 @@ export default function SettingsIndex({ settings }) {
                             border: '1px solid var(--line)',
                             fontSize: 14,
                             padding: '8px 14px',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 8,
                         }}
                     >
-                        {t.label}
+                        <Icon name={t.icon} size={16} color={tab === t.id ? '#fff' : 'var(--pri)'} />
+                        <span>{t.label}</span>
                     </button>
                 ))}
             </div>
@@ -146,7 +151,10 @@ export default function SettingsIndex({ settings }) {
                 <form className="fd" onSubmit={submit}>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 20 }}>
                         <div className="card">
-                            <h3 style={{ fontSize: 18, marginBottom: 14, color: 'var(--pri)' }}>🏷️ ব্র্যান্ড পরিচিতি</h3>
+                            <h3 style={{ fontSize: 18, marginBottom: 14, color: 'var(--pri)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <Icon name="tag" size={18} color="var(--pri)" />
+                                <span>ব্র্যান্ড পরিচিতি</span>
+                            </h3>
 
                             <label>ওয়েবসাইটের নাম</label>
                             <input value={d.site_name || ''} onChange={(e) => set('site_name', e.target.value)} placeholder="যেমন: সুকুন হাট" />
@@ -174,7 +182,10 @@ export default function SettingsIndex({ settings }) {
                         </div>
 
                         <div className="card">
-                            <h3 style={{ fontSize: 18, marginBottom: 14, color: 'var(--pri)' }}>🔗 সোশ্যাল ও যোগাযোগ লিংক</h3>
+                            <h3 style={{ fontSize: 18, marginBottom: 14, color: 'var(--pri)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <Icon name="link" size={18} color="var(--pri)" />
+                                <span>সোশ্যাল ও যোগাযোগ লিংক</span>
+                            </h3>
 
                             <label>ফেসবুক পেজ লিংক</label>
                             <input value={d.facebook || ''} onChange={(e) => set('facebook', e.target.value)} placeholder="https://facebook.com/..." />
@@ -211,7 +222,7 @@ export default function SettingsIndex({ settings }) {
                     {/* Single unified, prominent save button for Branding */}
                     <div style={{ marginTop: 18 }}>
                         <button className="btn" disabled={form.processing} style={{ minWidth: 220, padding: '12px 28px', fontSize: 16 }}>
-                            {form.processing ? 'সংরক্ষণ হচ্ছে...' : '💾 ব্র্যান্ডিং তথ্য সংরক্ষণ করুন'}
+                            {form.processing ? 'সংরক্ষণ হচ্ছে...' : 'ব্র্যান্ডিং তথ্য সংরক্ষণ করুন'}
                         </button>
                     </div>
                 </form>
@@ -221,7 +232,10 @@ export default function SettingsIndex({ settings }) {
             {tab === 'theme' && (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 20 }}>
                     <form className="card fd" onSubmit={submit}>
-                        <h3 style={{ fontSize: 18, marginBottom: 14, color: 'var(--pri)' }}>🎨 CSS থিম ভেরিয়েবল</h3>
+                        <h3 style={{ fontSize: 18, marginBottom: 14, color: 'var(--pri)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <Icon name="palette" size={18} color="var(--pri)" />
+                            <span>CSS থিম ভেরিয়েবল</span>
+                        </h3>
 
                         <label>প্রাইমারি কালার (প্রধান ব্র্যান্ড রং)</label>
                         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
@@ -247,7 +261,10 @@ export default function SettingsIndex({ settings }) {
                         </div>
                         <div className="er">{form.errors.secondary_color}</div>
 
-                        <h4 style={{ margin: '16px 0 8px', fontSize: 15 }}>⭐ রেডিমেড কালার প্রিসেট</h4>
+                        <h4 style={{ margin: '16px 0 8px', fontSize: 15, display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <Icon name="star" size={15} color="#f39c12" />
+                            <span>রেডিমেড কালার প্রিসেট</span>
+                        </h4>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 8 }}>
                             {PRESETS.map((p) => (
                                 <button
@@ -299,7 +316,10 @@ export default function SettingsIndex({ settings }) {
 
                     {/* LIVE PREVIEW */}
                     <div className="card" style={{ height: 'fit-content' }}>
-                        <h3 style={{ fontSize: 18, marginBottom: 14, color: 'var(--pri)' }}>👁️ লাইভ প্রিভিউ</h3>
+                        <h3 style={{ fontSize: 18, marginBottom: 14, color: 'var(--pri)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <Icon name="eye" size={18} color="var(--pri)" />
+                            <span>লাইভ প্রিভিউ</span>
+                        </h3>
                         <div style={{ ...previewVars, padding: 16, borderRadius: 12, background: 'var(--card)', border: '1px solid var(--line)' }}>
                             <div style={{ background: 'var(--pri)', color: '#fff', padding: '12px 16px', borderRadius: 10, marginBottom: 12 }}>
                                 <strong style={{ fontSize: 17 }}>{d.site_name || 'সাইটের নাম'}</strong>
@@ -315,7 +335,9 @@ export default function SettingsIndex({ settings }) {
                             </div>
                             <div style={{ display: 'flex', gap: 8 }}>
                                 <div style={{ flex: 1, border: '1px solid var(--line)', borderRadius: 10, padding: 12, textAlign: 'center' }}>
-                                    <div style={{ fontSize: 30 }}>📦</div>
+                                    <div style={{ margin: '8px auto', display: 'inline-block' }}>
+                                        <Icon name="shopping-bag" size={32} color="var(--pri)" />
+                                    </div>
                                     <div style={{ fontWeight: 600, fontSize: 13.5 }}>ডেমো প্রোডাক্ট</div>
                                     <div style={{ color: 'var(--pri)', fontWeight: 700 }}>{tk(999, d.currency_symbol || '৳')}</div>
                                     <button type="button" style={{ marginTop: 8, width: '100%', background: 'var(--pri)', color: '#fff', border: 'none', padding: '8px 0', borderRadius: 8, fontWeight: 600, cursor: 'pointer' }}>
@@ -335,7 +357,10 @@ export default function SettingsIndex({ settings }) {
             {tab === 'store' && (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 20 }}>
                     <form className="card fd" onSubmit={submit} style={{ maxWidth: 560 }}>
-                        <h3 style={{ fontSize: 18, marginBottom: 14, color: 'var(--pri)' }}>🚚 ডেলিভারি চার্জ সেটিংস</h3>
+                        <h3 style={{ fontSize: 18, marginBottom: 14, color: 'var(--pri)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <Icon name="truck" size={18} color="var(--pri)" />
+                            <span>ডেলিভারি চার্জ সেটিংস</span>
+                        </h3>
 
                         <label>ঢাকার ভেতরে ডেলিভারি চার্জ</label>
                         <input id="delivery_in" type="number" min="0" value={d.delivery_in ?? 70} onChange={(e) => set('delivery_in', e.target.value)} placeholder="যেমন: ৭০" />
@@ -352,13 +377,19 @@ export default function SettingsIndex({ settings }) {
                         </small>
                         <div className="er">{form.errors.free_over}</div>
 
-                        <h3 style={{ fontSize: 18, margin: '20px 0 12px', color: 'var(--pri)' }}>🧾 ট্যাক্স / ভ্যাট</h3>
+                        <h3 style={{ fontSize: 18, margin: '20px 0 12px', color: 'var(--pri)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <Icon name="receipt" size={18} color="var(--pri)" />
+                            <span>ট্যাক্স / ভ্যাট</span>
+                        </h3>
 
                         <label>ভ্যাট হার (%) — ০ দিলে ভ্যাট নেই</label>
                         <input type="number" min="0" max="100" step="0.5" value={d.tax_percent ?? 0} onChange={(e) => set('tax_percent', e.target.value)} placeholder="যেমন: ৫" />
                         <div className="er">{form.errors.tax_percent}</div>
 
-                        <h3 style={{ fontSize: 18, margin: '20px 0 12px', color: 'var(--pri)' }}>🔢 অর্ডার নম্বর প্রিফিক্স</h3>
+                        <h3 style={{ fontSize: 18, margin: '20px 0 12px', color: 'var(--pri)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <Icon name="hash" size={18} color="var(--pri)" />
+                            <span>অর্ডার নম্বর প্রিফিক্স</span>
+                        </h3>
                         <input value={d.order_prefix || ''} onChange={(e) => set('order_prefix', e.target.value)} placeholder="যেমন: SH-" />
                         <small style={{ color: 'var(--mut)', display: 'block', marginTop: 4 }}>অর্ডার নম্বরের আগে এই প্রিফিক্স যুক্ত হবে।</small>
 
@@ -368,7 +399,10 @@ export default function SettingsIndex({ settings }) {
                     </form>
 
                     <div className="card" style={{ height: 'fit-content', background: 'var(--soft)' }}>
-                        <h3 style={{ fontSize: 18, marginBottom: 10, color: 'var(--pri)' }}>💡 বর্তমান সারাংশ</h3>
+                        <h3 style={{ fontSize: 18, marginBottom: 10, color: 'var(--pri)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <Icon name="lightbulb" size={18} color="var(--pri)" />
+                            <span>বর্তমান সারাংশ</span>
+                        </h3>
                         <ul style={{ margin: 0, paddingLeft: 20, lineHeight: 2 }}>
                             <li><strong>ঢাকার ভেতরে:</strong> {tk(d.delivery_in || 0, d.currency_symbol)}</li>
                             <li><strong>ঢাকার বাইরে:</strong> {tk(d.delivery_out || 0, d.currency_symbol)}</li>
@@ -387,17 +421,23 @@ export default function SettingsIndex({ settings }) {
             {tab === 'payment' && (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 20 }}>
                     <form className="card fd" onSubmit={submit} style={{ maxWidth: 560 }}>
-                        <h3 style={{ fontSize: 18, marginBottom: 6, color: 'var(--pri)' }}>💳 পেমেন্ট গেটওয়ে সুইচ</h3>
+                        <h3 style={{ fontSize: 18, marginBottom: 6, color: 'var(--pri)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <Icon name="credit-card" size={18} color="var(--pri)" />
+                            <span>পেমেন্ট গেটওয়ে সুইচ</span>
+                        </h3>
                         <p style={{ color: 'var(--mut)', fontSize: 13.5, marginBottom: 14 }}>
                             যে পেমেন্ট পদ্ধতি চালু করবেন, সেটি চেকআউট পেজে কাস্টমারের কাছে দেখাবে।
                         </p>
 
-                        <Toggle name="payment_cod_enabled" label="ক্যাশ অন ডেলিভারি (COD)" hint="পণ্য হাতে পেয়ে টাকা পরিশোধ" />
-                        <Toggle name="payment_bkash_enabled" label="বিকাশ (bKash)" hint="বিকাশ সেন্ড মানি + TrxID ভেরিফিকেশন" />
-                        <Toggle name="payment_nagad_enabled" label="নগদ (Nagad)" hint="নগদ সেন্ড মানি + TrxID ভেরিফিকেশন" />
-                        <Toggle name="payment_sslcommerz_enabled" label="SSLCommerz (কার্ড/অনলাইন)" hint="কার্ড, নেটব্যাংকিং ও মোবাইল ব্যাংকিং (অ্যাডভান্সড — .env ফাইলে API কি সেট করতে হবে)" />
+                        <Toggle name="payment_cod_enabled" label="ক্যাশ অন ডেলিভারি (COD)" hint="পণ্য হাতে পেয়ে টাকা পরিশোধ" icon="truck" />
+                        <Toggle name="payment_bkash_enabled" label="বিকাশ (bKash)" hint="বিকাশ সেন্ড মানি + TrxID ভেরিফিকেশন" icon="credit-card" />
+                        <Toggle name="payment_nagad_enabled" label="নগদ (Nagad)" hint="নগদ সেন্ড মানি + TrxID ভেরিফিকেশন" icon="credit-card" />
+                        <Toggle name="payment_sslcommerz_enabled" label="SSLCommerz (কার্ড/অনলাইন)" hint="কার্ড, নেটব্যাংকিং ও মোবাইল ব্যাংকিং (অ্যাডভান্সড — .env ফাইলে API কি সেট করতে হবে)" icon="credit-card" />
 
-                        <h3 style={{ fontSize: 18, margin: '18px 0 12px', color: 'var(--pri)' }}>📱 মোবাইল ব্যাংকিং নম্বর</h3>
+                        <h3 style={{ fontSize: 18, margin: '18px 0 12px', color: 'var(--pri)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <Icon name="phone" size={18} color="var(--pri)" />
+                            <span>মোবাইল ব্যাংকিং নম্বর</span>
+                        </h3>
 
                         <label>বিকাশ নম্বর</label>
                         <input value={d.bkash_number || ''} onChange={(e) => set('bkash_number', e.target.value)} placeholder="যেমন: 01568772054" />
@@ -413,12 +453,15 @@ export default function SettingsIndex({ settings }) {
                     </form>
 
                     <div className="card" style={{ height: 'fit-content', background: 'var(--soft)' }}>
-                        <h3 style={{ fontSize: 18, marginBottom: 10, color: 'var(--pri)' }}>📊 বর্তমান অবস্থা</h3>
+                        <h3 style={{ fontSize: 18, marginBottom: 10, color: 'var(--pri)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <Icon name="credit-card" size={18} color="var(--pri)" />
+                            <span>বর্তমান অবস্থা</span>
+                        </h3>
                         <ul style={{ margin: 0, paddingLeft: 20, lineHeight: 2 }}>
-                            <li>COD: {d.payment_cod_enabled ? <strong style={{ color: 'var(--pri)' }}>✅ চালু</strong> : '❌ বন্ধ'}</li>
-                            <li>bKash: {d.payment_bkash_enabled ? <strong style={{ color: 'var(--pri)' }}>✅ চালু</strong> : '❌ বন্ধ'}</li>
-                            <li>Nagad: {d.payment_nagad_enabled ? <strong style={{ color: 'var(--pri)' }}>✅ চালু</strong> : '❌ বন্ধ'}</li>
-                            <li>SSLCommerz: {d.payment_sslcommerz_enabled ? <strong style={{ color: 'var(--pri)' }}>✅ চালু</strong> : '❌ বন্ধ'}</li>
+                            <li>COD: {d.payment_cod_enabled ? <strong style={{ color: 'var(--pri)' }}>✓ চালু</strong> : '✕ বন্ধ'}</li>
+                            <li>bKash: {d.payment_bkash_enabled ? <strong style={{ color: 'var(--pri)' }}>✓ চালু</strong> : '✕ বন্ধ'}</li>
+                            <li>Nagad: {d.payment_nagad_enabled ? <strong style={{ color: 'var(--pri)' }}>✓ চালু</strong> : '✕ বন্ধ'}</li>
+                            <li>SSLCommerz: {d.payment_sslcommerz_enabled ? <strong style={{ color: 'var(--pri)' }}>✓ চালু</strong> : '✕ বন্ধ'}</li>
                         </ul>
                         <small style={{ color: 'var(--mut)', display: 'block', marginTop: 10 }}>
                             SSLCommerz ব্যবহারের জন্য <code>.env</code> ফাইলে <code>SSLCOMMERZ_STORE_ID</code> ও <code>SSLCOMMERZ_SECRET</code> সেট করতে হবে।
@@ -430,16 +473,18 @@ export default function SettingsIndex({ settings }) {
             {/* ============ TAB: FEATURES ============ */}
             {tab === 'features' && (
                 <form className="card fd" onSubmit={submit} style={{ maxWidth: 640 }}>
-                    <h3 style={{ fontSize: 18, marginBottom: 6, color: 'var(--pri)' }}>🧩 ফিচার মডিউল টগল</h3>
+                    <h3 style={{ fontSize: 18, marginBottom: 6, color: 'var(--pri)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <Icon name="puzzle" size={18} color="var(--pri)" />
+                        <span>ফিচার মডিউল টগল</span>
+                    </h3>
                     <p style={{ color: 'var(--mut)', fontSize: 13.5, marginBottom: 14 }}>
                         প্লাগ-অ্যান্ড-প্লে মডিউল — যেকোনো ফিচার অন/অফ করুন। বন্ধ করলে সংশ্লিষ্ট UI ফ্রন্টএন্ড থেকে সরে যাবে।
                     </p>
 
-                    <Toggle name="feature_coupons" label="🎟️ কুপন / ডিসকাউন্ট সিস্টেম" hint="চেকআউটে কুপন কোড ইনপুট দেখাবে" />
-                    <Toggle name="feature_variations" label="🎨 প্রোডাক্ট ভেরিয়েশন (সাইজ/কালার)" hint="প্রোডাক্ট পেজে ভেরিয়েন্ট সিলেক্টর দেখাবে" />
-                    <Toggle name="feature_reviews" label="⭐ কাস্টমার রিভিউ ও রেটিং" hint="প্রোডাক্ট পেজে রিভিউ সেকশন দেখাবে" />
-                    <Toggle name="feature_blog" label="📝 ব্লগ / নিউজ মডিউল" hint="সাইটে ব্লগ পেজ ও মেনু দেখাবে" />
-                    <Toggle name="feature_wishlist" label="❤️ উইশলিস্ট" hint="কার্টে উইশলিস্ট বাটন যুক্ত হবে" />
+                    <Toggle name="feature_coupons" label="কুপন / ডিসকাউন্ট সিস্টেম" hint="চেকআউটে কুপন কোড ইনপুট দেখাবে" icon="ticket" />
+                    <Toggle name="feature_variations" label="প্রোডাক্ট ভেরিয়েশন (সাইজ/কালার)" hint="প্রোডাক্ট পেজে ভেরিয়েন্ট সিলেক্টর দেখাবে" icon="layers" />
+                    <Toggle name="feature_reviews" label="কাস্টমার রিভিউ ও রেটিং" hint="প্রোডাক্ট পেজে রিভিউ ও স্টার রেটিং দেখাবে" icon="star" />
+                    <Toggle name="feature_wishlist" label="উইশলিস্ট (পছন্দের তালিকা)" hint="কার্টে ও কার্ডে উইশলিস্ট বাটন দেখাবে" icon="heart" />
 
                     <button className="btn" disabled={form.processing} style={{ marginTop: 16 }}>
                         {form.processing ? 'সংরক্ষণ হচ্ছে...' : 'ফিচার সেটিংস সংরক্ষণ'}
@@ -451,7 +496,10 @@ export default function SettingsIndex({ settings }) {
             {tab === 'data' && (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 20 }}>
                     <div className="card" style={{ maxWidth: 520 }}>
-                        <h3 style={{ fontSize: 18, marginBottom: 8, color: 'var(--pri)' }}>🗄️ ডেমো কন্টেন্ট ম্যানেজমেন্ট</h3>
+                        <h3 style={{ fontSize: 18, marginBottom: 8, color: 'var(--pri)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <Icon name="database" size={18} color="var(--pri)" />
+                            <span>ডেমো কন্টেন্ট ম্যানেজমেন্ট</span>
+                        </h3>
                         <p style={{ color: 'var(--mut)', fontSize: 13.5, marginBottom: 16 }}>
                             ক্লায়েন্ট হ্যান্ডওভারের সময় ডেমো প্রোডাক্ট, ক্যাটাগরি ও টেস্ট অর্ডার মুছে স্টোর ফাঁকা করুন।
                             <strong style={{ color: '#c0392b' }}> এটি ফেরানো যাবে না!</strong>
@@ -460,7 +508,7 @@ export default function SettingsIndex({ settings }) {
                         <button
                             type="button"
                             className="btn"
-                            style={{ background: '#c0392b', width: '100%', marginBottom: 10 }}
+                            style={{ background: '#c0392b', width: '100%', marginBottom: 10, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
                             onClick={() => {
                                 if (confirm('সব ডেমো প্রোডাক্ট, ক্যাটাগরি ও অর্ডার মুছে যাবে। আপনি কি নিশ্চিত?')) {
                                     form.post(`${pfx}/settings/clear-data`, {
@@ -470,18 +518,20 @@ export default function SettingsIndex({ settings }) {
                                 }
                             }}
                         >
-                            🗑️ ডেমো কন্টেন্ট মুছে ফেলুন (ক্লিন হ্যান্ডওভার)
+                            <Icon name="trash" size={16} color="#fff" />
+                            <span>ডেমো কন্টেন্ট মুছে ফেলুন (ক্লিন হ্যান্ডওভার)</span>
                         </button>
 
                         <button
                             type="button"
                             className="btn"
-                            style={{ width: '100%' }}
+                            style={{ width: '100%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
                             onClick={() => {
                                 form.post(`${pfx}/settings/reset-demo`, { preserveScroll: true });
                             }}
                         >
-                            ♻️ Reset to Default Data — ডিফল্ট ডেমো রিস্টোর করুন
+                            <Icon name="refresh" size={16} color="#fff" />
+                            <span>Reset to Default Data — ডিফল্ট ডেমো রিস্টোর করুন</span>
                         </button>
                         <small style={{ color: 'var(--mut)', display: 'block', marginTop: 10 }}>
                             "Reset" ডেমো প্রোডাক্ট/ক্যাটাগরি আবার তৈরি করবে। "Clear" সবকিছু মুছে স্টোর খালি করবে।
@@ -489,7 +539,10 @@ export default function SettingsIndex({ settings }) {
                     </div>
 
                     <div className="card" style={{ height: 'fit-content', background: 'var(--soft)' }}>
-                        <h3 style={{ fontSize: 18, marginBottom: 10, color: 'var(--pri)' }}>⚡ ফ্রেশ ইনস্টল (CLI)</h3>
+                        <h3 style={{ fontSize: 18, marginBottom: 10, color: 'var(--pri)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <Icon name="zap" size={18} color="var(--pri)" />
+                            <span>ফ্রেশ ইনস্টল (CLI)</span>
+                        </h3>
                         <p style={{ fontSize: 13.5, lineHeight: 1.8 }}>
                             নতুন ক্লায়েন্ট সাইট সেটআপের সময় টার্মিনাল থেকে চালান:
                         </p>

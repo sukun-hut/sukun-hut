@@ -37,4 +37,17 @@ class HomeController extends Controller
             'description' => config('shop.subtagline'),
         ]]);
     }
+
+    public function wishlist()
+    {
+        $products = Product::active()->with(['category', 'images', 'variations'])
+            ->latest('id')->limit(200)->get()->map->forStore();
+
+        return Inertia::render('Store/Wishlist', [
+            'products' => $products,
+        ])->withViewData(['meta' => [
+            'title' => 'পছন্দের তালিকা (Wishlist) – '.config('shop.name'),
+            'noindex' => true,
+        ]]);
+    }
 }

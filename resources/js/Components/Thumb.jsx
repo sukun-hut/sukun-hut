@@ -1,3 +1,11 @@
+import { Icon } from './Icons';
+
 export default function Thumb({ src, emoji, alt = '' }) {
-    return src ? <img src={src} alt={alt} loading="lazy" /> : <span aria-hidden="true">{emoji || '🛍️'}</span>;
+    if (src) {
+        return <img src={src} alt={alt} loading="lazy" />;
+    }
+    if (emoji) {
+        return <span aria-hidden="true">{emoji}</span>;
+    }
+    return <Icon name="shopping-bag" size={26} color="var(--pri)" />;
 }

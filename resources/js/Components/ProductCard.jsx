@@ -1,5 +1,6 @@
 import { Link, router, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
+import { Icon } from './Icons';
 import { useCart } from '../lib/cart';
 import { hue, tk } from '../lib/format';
 import { toast } from '../lib/toast';
@@ -167,7 +168,7 @@ export default function ProductCard({ p, isHighlighted = false }) {
                             transition: 'transform 0.15s ease',
                         }}
                     >
-                        {wish ? '❤️' : '🤍'}
+                        <Icon name="heart" size={17} color={wish ? '#e11d48' : '#64748b'} />
                     </button>
                 )}
             </Link>

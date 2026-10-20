@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import AdminLayout from '../../Layouts/AdminLayout';
+import { Icon } from '../../Components/Icons';
 import { PAY, bn, tk } from '../../lib/format';
 
 const STATS = [
@@ -36,7 +37,10 @@ export default function Dashboard({ stats, recent }) {
                     <div>
                         <b>#{o.number}</b> {o.name}<br />
                         <small style={{ color: 'var(--mut)' }}>
-                            <a href={`tel:${o.phone}`} style={{ color: 'var(--pri)', fontWeight: 600 }}>📞 {o.phone}</a> | {PAY[o.payment_method] || 'ক্যাশ অন ডেলিভারি'}
+                            <a href={`tel:${o.phone}`} style={{ color: 'var(--pri)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                <Icon name="phone" size={12} color="var(--pri)" />
+                                <span>{o.phone}</span>
+                            </a> | {PAY[o.payment_method] || 'ক্যাশ অন ডেলিভারি'}
                         </small>
                     </div>
                     <div style={{ textAlign: 'right' }}>

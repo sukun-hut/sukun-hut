@@ -62,7 +62,6 @@ class SettingController extends Controller
             'coupon_percent' => Setting::getInt('coupon_percent', (int) config('shop.coupon_percent', 10)),
             'feature_variations' => Setting::getBool('feature_variation', config('shop.features.variation', true)),
             'feature_reviews' => Setting::getBool('feature_review', config('shop.features.review', false)),
-            'feature_blog' => Setting::getBool('feature_blog', config('shop.features.blog', false)),
             'feature_wishlist' => Setting::getBool('feature_wishlist', config('shop.features.wishlist', false)),
 
             // Misc
@@ -126,7 +125,6 @@ class SettingController extends Controller
             'coupon_percent' => 'nullable|integer|min:0|max:100',
             'feature_variations' => 'nullable|boolean',
             'feature_reviews' => 'nullable|boolean',
-            'feature_blog' => 'nullable|boolean',
             'feature_wishlist' => 'nullable|boolean',
         ]);
 
@@ -166,7 +164,6 @@ class SettingController extends Controller
             'coupon_percent' => ['coupon_percent', 'number', 'features'],
             'feature_variations' => ['feature_variation', 'boolean', 'features'],
             'feature_reviews' => ['feature_review', 'boolean', 'features'],
-            'feature_blog' => ['feature_blog', 'boolean', 'features'],
             'feature_wishlist' => ['feature_wishlist', 'boolean', 'features'],
         ];
 
@@ -183,7 +180,7 @@ class SettingController extends Controller
 
         // Boolean checkboxes: unchecked checkboxes aren't sent, so explicit
         // "0" values are also accepted from the form (form helper sends 0/1).
-        foreach (['payment_cod_enabled', 'payment_bkash_enabled', 'payment_nagad_enabled', 'payment_sslcommerz_enabled', 'feature_coupons', 'feature_variations', 'feature_reviews', 'feature_blog', 'feature_wishlist'] as $bKey) {
+        foreach (['payment_cod_enabled', 'payment_bkash_enabled', 'payment_nagad_enabled', 'payment_sslcommerz_enabled', 'feature_coupons', 'feature_variations', 'feature_reviews', 'feature_wishlist'] as $bKey) {
             if ($request->exists($bKey) && ! $request->boolean($bKey)) {
                 [$dbKey, , $group] = $map[$bKey];
                 Setting::set($dbKey, '0', 'boolean', $group);

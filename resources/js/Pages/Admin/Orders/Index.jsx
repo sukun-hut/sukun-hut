@@ -1,6 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import AdminLayout from '../../../Layouts/AdminLayout';
+import { Icon } from '../../../Components/Icons';
 import { PAY, bn, clean, tk } from '../../../lib/format';
 import { toast } from '../../../lib/toast';
 
@@ -110,8 +111,9 @@ export default function Index({ orders, counts, filters }) {
                                         </span>
                                         <b style={{ fontSize: 17, color: 'var(--pri)' }}>অর্ডার: #{o.number}</b>
                                     </div>
-                                    <small style={{ color: 'var(--mut)', marginTop: 4, display: 'block' }}>
-                                        🕒 {new Date(o.created_at).toLocaleString('bn-BD', { dateStyle: 'medium', timeStyle: 'short' })}
+                                    <small style={{ color: 'var(--mut)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 5 }}>
+                                        <Icon name="clock" size={13} color="var(--mut)" />
+                                        {new Date(o.created_at).toLocaleString('bn-BD', { dateStyle: 'medium', timeStyle: 'short' })}
                                     </small>
                                 </div>
 
@@ -153,43 +155,51 @@ export default function Index({ orders, counts, filters }) {
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
                                 {/* CUSTOMER INFO & CLICK-TO-CALL */}
                                 <div>
-                                    <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 4 }}>
-                                        👤 {o.name}
+                                    <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+                                        <Icon name="user" size={16} color="var(--pri)" />
+                                        <span>{o.name}</span>
                                     </div>
                                     <div style={{ margin: '6px 0 10px' }}>
                                         <a
                                             href={`tel:${o.phone}`}
                                             className="btn"
                                             style={{
-                                                background: '#25D366',
+                                                background: '#0d7a5f',
                                                 color: '#fff',
                                                 fontSize: 14,
-                                                padding: '6px 14px',
+                                                padding: '7px 16px',
                                                 textDecoration: 'none',
                                                 display: 'inline-flex',
                                                 alignItems: 'center',
-                                                gap: 6,
+                                                gap: 8,
                                                 borderRadius: 99,
-                                                boxShadow: '0 2px 6px rgba(37, 211, 102, 0.3)',
+                                                boxShadow: '0 3px 10px rgba(13, 122, 95, 0.28)',
+                                                fontWeight: 700,
                                             }}
                                             title="কাস্টমারকে সরাসরি কল করুন"
                                         >
-                                            <span style={{ fontSize: 16 }}>📞</span>
-                                            <b>কল করুন: {o.phone}</b>
+                                            <Icon name="phone" size={15} color="#fff" />
+                                            <span>কল করুন: {o.phone}</span>
                                         </a>
                                     </div>
                                     <div style={{ color: 'var(--mut)', fontSize: 14, lineHeight: 1.45, background: 'var(--soft)', padding: '8px 10px', borderRadius: 8 }}>
-                                        📍 <strong>ঠিকানা:</strong> {o.address}<br />
-                                        <span style={{ color: 'var(--pri)', fontWeight: 600 }}>
-                                            ({o.zone === 'in' ? 'ঢাকার ভেতরে' : 'ঢাকার বাইরে'})
-                                        </span>
+                                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+                                            <Icon name="map-pin" size={15} color="var(--pri)" style={{ marginTop: 2 }} />
+                                            <div>
+                                                <strong>ঠিকানা:</strong> {o.address}<br />
+                                                <span style={{ color: 'var(--pri)', fontWeight: 600 }}>
+                                                    ({o.zone === 'in' ? 'ঢাকার ভেতরে' : 'ঢাকার বাইরে'})
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
                                 {/* ORDER ITEMS WITH VARIATIONS */}
                                 <div>
-                                    <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 6, color: 'var(--pri)' }}>
-                                        🛍️ অর্ডারের পণ্যসমূহ:
+                                    <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 6, color: 'var(--pri)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                        <Icon name="shopping-bag" size={16} color="var(--pri)" />
+                                        <span>অর্ডারের পণ্যসমূহ:</span>
                                     </div>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                                         {o.items.map((i) => (

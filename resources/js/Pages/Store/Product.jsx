@@ -1,6 +1,7 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import Gallery from '../../Components/Gallery';
+import { Icon } from '../../Components/Icons';
 import ProductCard, { Buttons, Price, Stock } from '../../Components/ProductCard';
 import StoreLayout from '../../Layouts/StoreLayout';
 import { hue, tk } from '../../lib/format';
@@ -119,19 +120,21 @@ export default function Product({ product: p, related }) {
                                 <button
                                     type="button"
                                     className={`btn ${wish ? 'a' : 'o'}`}
-                                    style={{ flex: 1, padding: '10px 14px' }}
+                                    style={{ flex: 1, padding: '10px 14px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
                                     onClick={handleWishlist}
                                 >
-                                    {wish ? '❤️ পছন্দের তালিকায় আছে' : '🤍 পছন্দের তালিকায় রাখুন'}
+                                    <Icon name="heart" size={16} color={wish ? '#e11d48' : 'currentColor'} />
+                                    <span>{wish ? 'পছন্দের তালিকায় আছে' : 'পছন্দের তালিকায় রাখুন'}</span>
                                 </button>
                             )}
                             <button
                                 type="button"
                                 className="btn o"
-                                style={{ flex: 1, padding: '10px 14px' }}
+                                style={{ flex: 1, padding: '10px 14px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
                                 onClick={copy}
                             >
-                                {copied ? '✓ কপি হয়েছে' : '🔗 লিংক কপি করুন'}
+                                <Icon name={copied ? 'check' : 'link'} size={16} color="var(--pri)" />
+                                <span>{copied ? 'কপি হয়েছে' : 'লিংক কপি করুন'}</span>
                             </button>
                         </div>
                     </div>

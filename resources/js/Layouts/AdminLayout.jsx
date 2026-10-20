@@ -40,8 +40,6 @@ export default function AdminLayout({ children }) {
                 </div>
             </header>
             <main className="w" style={{ padding: '20px 18px 60px' }}>
-                {flash.success && <div className="card" style={{ background: 'var(--soft)', marginBottom: 14 }}>{flash.success}</div>}
-                {flash.error && <div className="card" style={{ color: '#a5281b', marginBottom: 14 }}>{flash.error}</div>}
                 {children}
             </main>
             <ToastContainer />

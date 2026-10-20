@@ -1,5 +1,6 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
+import { Icon } from '../../Components/Icons';
 import StoreLayout from '../../Layouts/StoreLayout';
 import { PAY, bn, tk } from '../../lib/format';
 import { toast } from '../../lib/toast';
@@ -69,7 +70,9 @@ export default function Thanks({ order: o }) {
                         }}
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div style={{ fontSize: 54, lineHeight: 1, marginBottom: 12 }}>🎉</div>
+                        <div style={{ margin: '0 auto 14px', width: 64, height: 64, borderRadius: '50%', background: 'var(--soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Icon name="check" size={32} color="var(--pri)" />
+                        </div>
                         <h2 style={{ fontSize: 26, color: 'var(--pri)', margin: '0 0 6px' }}>
                             Order Confirmed!
                         </h2>
@@ -110,7 +113,9 @@ export default function Thanks({ order: o }) {
 
             {/* RECEIPT / SUMMARY VIEW */}
             <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 48, marginBottom: 6 }}>✅</div>
+                <div style={{ margin: '0 auto 10px', width: 56, height: 56, borderRadius: '50%', background: 'var(--soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Icon name="check" size={28} color="var(--pri)" />
+                </div>
                 <h1 style={{ fontSize: 28, color: 'var(--pri)' }}>অর্ডার কনফার্মেশন রসিদ</h1>
                 <p style={{ color: 'var(--mut)', marginTop: 4 }}>
                     অর্ডার নম্বর: <b>#{o.number}</b> | পেমেন্ট: <b>ক্যাশ অন ডেলিভারি</b>
@@ -159,15 +164,18 @@ export default function Thanks({ order: o }) {
                     দ্রুত যোগাযোগের জন্য সরাসরি হোয়াটসঅ্যাপ বা মেসেঞ্জারে অর্ডারের তথ্য পাঠাতে পারেন:
                 </p>
                 <div className="row2">
-                    <a className="btn o" href={`https://wa.me/${shop.whatsapp}?text=${encodeURIComponent(text)}`} target="_blank" rel="noopener">
-                        💬 হোয়াটসঅ্যাপ
+                    <a className="btn o" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} href={`https://wa.me/${shop.whatsapp}?text=${encodeURIComponent(text)}`} target="_blank" rel="noopener">
+                        <Icon name="phone" size={15} color="var(--pri)" />
+                        <span>হোয়াটসঅ্যাপ</span>
                     </a>
-                    <a className="btn o" href={shop.messenger} target="_blank" rel="noopener">
-                        ⚡ মেসেঞ্জার
+                    <a className="btn o" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} href={shop.messenger} target="_blank" rel="noopener">
+                        <Icon name="zap" size={15} color="var(--pri)" />
+                        <span>মেসেঞ্জার</span>
                     </a>
                 </div>
-                <button className="btn o" style={{ width: '100%', marginTop: 8 }} onClick={copy}>
-                    {copied ? '✓ অর্ডারের লেখা কপি হয়েছে' : '📋 অর্ডারের লেখা কপি করুন'}
+                <button className="btn o" style={{ width: '100%', marginTop: 8, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }} onClick={copy}>
+                    <Icon name="receipt" size={16} color="var(--pri)" />
+                    <span>{copied ? '✓ অর্ডারের বিবরণ কপি হয়েছে' : 'অর্ডারের বিবরণ কপি করুন'}</span>
                 </button>
                 <Link className="btn" style={{ width: '100%', marginTop: 10 }} href="/">
                     আরও কেনাকাটা করুন

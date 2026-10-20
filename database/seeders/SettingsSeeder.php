@@ -52,7 +52,6 @@ class SettingsSeeder extends Seeder
             ['key' => 'coupon_percent', 'value' => (string) config('shop.coupon_percent', 10), 'type' => 'number', 'group' => 'features'],
             ['key' => 'feature_variation', 'value' => '1', 'type' => 'boolean', 'group' => 'features'],
             ['key' => 'feature_review', 'value' => '0', 'type' => 'boolean', 'group' => 'features'],
-            ['key' => 'feature_blog', 'value' => '0', 'type' => 'boolean', 'group' => 'features'],
             ['key' => 'feature_wishlist', 'value' => '0', 'type' => 'boolean', 'group' => 'features'],
 
             // SEO & Tracking

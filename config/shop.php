@@ -58,7 +58,6 @@ return [
         'coupon' => (bool) env('FEATURE_COUPON', true),
         'variation' => (bool) env('FEATURE_VARIATION', true),
         'review' => (bool) env('FEATURE_REVIEW', false),
-        'blog' => (bool) env('FEATURE_BLOG', false),
         'wishlist' => (bool) env('FEATURE_WISHLIST', false),
     ],
 
