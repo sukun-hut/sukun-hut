@@ -1,29 +1,74 @@
 import { Link, router, usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import CartDrawer from '../Components/CartDrawer';
+import ToastContainer from '../Components/ToastContainer';
 import { CartProvider, useCart } from '../lib/cart';
 import { bn, clean } from '../lib/format';
+import { getWishlist } from '../lib/wishlist';
 
 function Shell({ children }) {
     const { shop, filters } = usePage().props;
     const cart = useCart();
     const [q, setQ] = useState(() => new URLSearchParams(window.location.search).get('q') || '');
+    const [wishlistCount, setWishlistCount] = useState(() => getWishlist().length);
     const first = useRef(true);
+
+    // Live theme variables sync on storefront
+    useEffect(() => {
+        if (shop?.primary_color) {
+            document.documentElement.style.setProperty('--pri', shop.primary_color);
+        }
+        if (shop?.secondary_color) {
+            document.documentElement.style.setProperty('--acc', shop.secondary_color);
+        }
+    }, [shop?.primary_color, shop?.secondary_color]);
+
+    // Keep wishlist badge count reactive
+    useEffect(() => {
+        const onWishlistUpdate = (e) => {
+            setWishlistCount(e.detail?.list?.length ?? getWishlist().length);
+        };
+        window.addEventListener('wishlist:updated', onWishlistUpdate);
+        return () => window.removeEventListener('wishlist:updated', onWishlistUpdate);
+    }, []);
 
     useEffect(() => {
         if (first.current) { first.current = false; return; }
         const t = setTimeout(() => {
-            router.get('/', clean({ q, category: filters?.category, sort: filters?.sort }), { preserveState: true, replace: true });
+            router.get('/', clean({ q, category: filters?.category, sort: filters?.sort, wishlist: filters?.wishlist }), { preserveState: true, replace: true });
         }, 350);
         return () => clearTimeout(t);
     }, [q]);
 
+    const showWishlistOnly = () => {
+        router.get('/', clean({ ...filters, wishlist: filters?.wishlist ? null : '1' }), { preserveState: true, preserveScroll: true, replace: true });
+    };
+
     return (
         <>
             <header className="hdr">
-                <div className="w hb">
-                    <Link className="logo" href="/"><img src="/images/logo.jpg" alt={`${shop.name} লোগো`} width="44" height="44" /><b>{shop.name}</b></Link>
+                <div className="w hb" style={{ gap: 8, flexWrap: 'wrap' }}>
+                    <Link className="logo" href="/"><img src={shop.logo || '/images/logo.jpg'} alt={`${shop.name} লোগো`} width="44" height="44" /><b>{shop.name}</b></Link>
                     <input className="sr" type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="নাম বা ক্যাটাগরি খুঁজুন" aria-label="পণ্য খুঁজুন" />
+
+                    {/* PLUG & PLAY: Wishlist Header Button */}
+                    {shop.features?.wishlist && (
+                        <button
+                            type="button"
+                            className="cb"
+                            style={{
+                                background: filters?.wishlist ? 'var(--acc)' : 'var(--card)',
+                                color: filters?.wishlist ? '#12261f' : 'var(--ink)',
+                                border: '1px solid var(--line)',
+                                padding: '8px 14px',
+                            }}
+                            onClick={showWishlistOnly}
+                            title="পছন্দের পণ্যের তালিকা দেখুন"
+                        >
+                            ❤️ <span style={{ position: 'static', display: 'inline-block', marginLeft: 4 }}>{bn(wishlistCount)}</span>
+                        </button>
+                    )}
+
                     <button className="cb" onClick={() => cart.setOpen(true)} aria-label="কার্ট খুলুন">কার্ট<span>{bn(cart.count)}</span></button>
                 </div>
             </header>
@@ -33,17 +78,23 @@ function Shell({ children }) {
                     <div>
                         <h3>{shop.name}</h3>
                         <p>{shop.subtagline}</p>
-                        <a className="btn" href={shop.facebook} target="_blank" rel="noopener">ফেসবুকে মেসেজ দিন</a>
+                        <a className="btn" href={shop.facebook || '#'} target="_blank" rel="noopener">ফেসবুকে মেসেজ দিন</a>
                     </div>
                     <div>
                         <h3>যোগাযোগ</h3>
                         <p>{shop.address}</p>
-                        <p><a href={`tel:${shop.phone}`}>{shop.phone_display}</a></p>
+                        <p><a href={`tel:${shop.phone}`}>{shop.phone_display || shop.phone}</a></p>
                         <p><a href={`mailto:${shop.email}`}>{shop.email}</a></p>
+                        {/* PLUG & PLAY: Blog Link in footer */}
+                        {shop.features?.blog && (
+                            <p style={{ marginTop: 8 }}>
+                                <a href="/#blog" style={{ color: 'var(--acc)', fontWeight: 600 }}>📝 কেনাকাটার দরকারি টিপস ও ব্লগ</a>
+                            </p>
+                        )}
                     </div>
                     <div>
                         <h3>ডেলিভারি</h3>
-                        <p>ঢাকার ভেতরে {bn(shop.delivery_in)} টাকা, ঢাকার বাইরে {bn(shop.delivery_out)} টাকা।{shop.free_over > 0 && ` ${bn(shop.free_over)} টাকার বেশি কিনলে ফ্রি।`}</p>
+                        <p>ঢাকার ভেতরে {bn(shop.delivery_in)} {window.__CURRENCY_SYMBOL__ || 'টাকা'}, ঢাকার বাইরে {bn(shop.delivery_out)} {window.__CURRENCY_SYMBOL__ || 'টাকা'}।{shop.free_over > 0 && ` ${bn(shop.free_over)} এর বেশি কিনলে ফ্রি।`}</p>
                     </div>
                 </div>
                 <div className="w fcredit">
@@ -65,7 +116,7 @@ function Shell({ children }) {
                 </a>
             </div>
             <CartDrawer />
-            <div className={`toast${cart.toast.on ? ' s' : ''}`} role="status">{cart.toast.m}</div>
+            <ToastContainer />
         </>
     );
 }

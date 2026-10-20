@@ -29,6 +29,8 @@ Route::domain(config('shop.admin_domain'))->name('admin.')->group(function () {
 
         Route::get('settings', [Admin\SettingController::class, 'index'])->name('settings.index');
         Route::post('settings', [Admin\SettingController::class, 'update'])->name('settings.update');
+        Route::post('settings/reset-demo', [Admin\SettingController::class, 'resetDemo'])->name('settings.reset-demo');
+        Route::post('settings/clear-data', [Admin\SettingController::class, 'clearData'])->name('settings.clear-data');
     });
 });
 
@@ -74,6 +76,8 @@ if (config('shop.admin_same_domain')) {
 
             Route::get('settings', [Admin\SettingController::class, 'index'])->name('settings.index');
             Route::post('settings', [Admin\SettingController::class, 'update'])->name('settings.update');
+            Route::post('settings/reset-demo', [Admin\SettingController::class, 'resetDemo'])->name('settings.reset-demo');
+            Route::post('settings/clear-data', [Admin\SettingController::class, 'clearData'])->name('settings.clear-data');
         });
     });
 }

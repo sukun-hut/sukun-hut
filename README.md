@@ -1,58 +1,170 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Sukun Hut — White-Label E-Commerce Boilerplate 🛍️
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Laravel 12 + Inertia (React) ভিত্তিক একটি প্রফেশনাল, রিইউজেবল **হোয়াইট-লেবেল ই-কমার্স বয়লারপ্লেট**।
+যেকোনো ক্লায়েন্টের শপের জন্য অ্যাডমিন প্যানেল থেকেই ব্র্যান্ডিং, থিম, ডেলিভারি নিয়ম, পেমেন্ট গেটওয়ে ও ফিচার মডিউল কাস্টমাইজ করে দ্রুত সাইট ডেলিভারি দেওয়া যায় — কোনো কোড পরিবর্তন ছাড়াই।
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
-
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
-
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## ⚡ Quick Start (নতুন ক্লায়েন্ট সাইট সেটআপ)
 
 ```bash
-composer require laravel/boost --dev
+# 1. ডিপেন্ডেন্সি ইনস্টল
+composer install
+npm install
 
-php artisan boost:install
+# 2. এনভায়রনমেন্ট সেটআপ
+cp .env.example .env
+php artisan key:generate
+
+# 3. এক কমান্ডে ডাটাবেস + ডেমো ডাটা + অ্যাডমিন অ্যাকাউন্ট
+php artisan migrate:fresh --seed
+
+# 4. স্টোরেজ লিংক
+php artisan storage:link
+
+# 5. ডেভ সার্ভার
+npm run dev
+php artisan serve
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### ডিফল্ট অ্যাডমিন লগইন
+| | |
+|---|---|
+| **URL** | `/admin` (অথবা `ADMIN_DOMAIN` কনফিগ অনুযায়ী) |
+| **Email** | `.env` ফাইলের `ADMIN_EMAIL` (ডিফল্ট: `admin@sukunhut.test`) |
+| **Password** | `.env` ফাইলের `ADMIN_PASSWORD` (ডিফল্ট: `ChangeMe-12345`) |
 
-## Contributing
+> ⚠️ **হ্যান্ডওভারের আগে অবশ্যই** `.env` এ নতুন অ্যাডমিন ইমেইল/পাসওয়ার্ড সেট করে আবার `migrate:fresh --seed` চালান।
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+---
 
-## Code of Conduct
+## 🎛️ সাইট সেটিংস (Admin Panel)
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+অ্যাডমিন → **সাইট সেটিংস** পেজে ৬টি ট্যাব:
 
-## Security Vulnerabilities
+### 🏢 Branding
+সাইট নাম, স্লোগান, ইমেইল, ফোন, ঠিকানা, ফেসবুক/মেসেঞ্জার/হোয়াটসঅ্যাপ লিংক, লোগো ও ফেভিকন আপলোড, ফেসবুক পিক্সেল — সব ডাটাবেস থেকে পরিচালিত, হার্ডকোড নেই।
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 🎨 Theme & Colors
+- প্রাইমারি/সেকেন্ডারি কালার পিকার (CSS ভেরিয়েবল `--pri`, `--acc`)
+- ৬টি রেডিমেড কালার প্রিসেট
+- কারেন্সি সিম্বল সিলেক্টর (৳, $, €, ₹, কাস্টম)
+- লাইভ প্রিভিউ প্যানেল
 
-## License
+### 🛒 Store & Delivery
+- ঢাকার ভেতরে/বাইরে ডেলিভারি চার্জ
+- ফ্রি ডেলিভারি থ্রেশহোল্ড
+- ট্যাক্স/ভ্যাট হার
+- অর্ডার নম্বর প্রিফিক্স
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### 💳 Payment Gateways
+টগল দিয়ে অন/অফ: **COD**, **bKash** (TrxID ভেরিফিকেশনসহ), **Nagad**, **SSLCommerz**।
+চালু গেটওয়েগুলোই চেকআউট পেজে কাস্টমারের কাছে দেখাবে; সার্ভার সাইডেও ভ্যালিডেশন হয়।
+
+### 🧩 Feature Modules (Plug-and-Play)
+কুপন, ভেরিয়েশন, রিভিউ, ব্লগ, উইশলিস্ট — প্রতিটি টগল অন/অফ করলেই ফ্রন্টএন্ডে দেখা/না-দেখা হবে।
+
+### 🗄️ Demo Data
+- **Reset to Default Data** — ডেমো প্রোডাক্ট/ক্যাটাগরি রিস্টোর
+- **Clean Handover** — সব ডেমো প্রোডাক্ট, ক্যাটাগরি ও টেস্ট অর্ডার মুছে ফাঁকা স্টোর ডেলিভারি
+
+---
+
+## 🏗️ আর্কিটেকচার
+
+```
+app/
+├── Http/
+│   ├── Controllers/
+│   │   ├── Admin/          # অ্যাডমিন CRUD (Product, Category, Order, Setting)
+│   │   └── Store/          # স্টোরফ্রন্ট (Home, Product, Checkout)
+│   └── Middleware/
+│       └── HandleInertiaRequests.php   # সব ডায়নামিক সেটিংস 'shop' প্রপ হিসেবে শেয়ার
+├── Models/
+│   └── Setting.php         # get/getInt/getBool/set + ক্যাশিং, deliverySettings()
+├── Support/
+│   └── Shop.php            # ডেলিভারি ফি, কুপন ডিসকাউন্ট, কারেন্সি হেল্পার
+config/
+├── shop.php                # ডিফল্ট ফলব্যাক ভ্যালু + admin ক্রেডেনশিয়াল
+├── branding.php            # ব্র্যান্ডিং ফলব্যাক
+└── store.php               # স্টোর রুলস ফলব্যাক
+database/seeders/
+├── DatabaseSeeder.php      # সেটিংস → অ্যাডমিন → ডেমো ডাটা (ক্রমানুসারে)
+├── SettingsSeeder.php      # ৩৫+ ডিফল্ট সেটিংস
+└── DemoDataSeeder.php      # ৩ ক্যাটাগরি, ৯ প্রোডাক্ট, ভেরিয়েশনসহ
+resources/js/
+├── Layouts/                # StoreLayout (থিম-ফ্রেন্ডলি), AdminLayout
+├── Pages/
+│   ├── Admin/Settings/     # ট্যাব-ভিত্তিক সেটিংস UI
+│   └── Store/              # Home, Product, Checkout (ডায়নামিক পেমেন্ট UI)
+└── lib/format.js           # tk(), bn() — ডায়নামিক কারেন্সি সিম্বল সাপোর্ট
+```
+
+### সেটিংস রেজলিউশন অর্ডার
+1. **Database** (`settings` টেবিল) → 2. **Config** (`config/shop.php`) → 3. **Hardcoded default**
+
+---
+
+## 🧩 নতুন মডিউল যোগ করা (Plug-and-Play)
+
+### নতুন সেটিংস ফিল্ড
+`SettingController::update()`-এর `$map` অ্যারেতে এক লাইন যোগ করুন:
+
+```php
+'feature_reviews' => ['feature_review', 'boolean', 'features'],
+```
+
+`SettingsSeeder`-এ ডিফল্ট ভ্যালু, এবং `HandleInertiaRequests::share()`-এ `shop` প্রপে যোগ করুন — UI-তে টগল স্বয়ংক্রিয়ভাবে কাজ করবে।
+
+### নতুন পেমেন্ট গেটওয়ে
+1. `SettingController` → validation + map-এ `payment_xxx_enabled` যোগ
+2. `CheckoutController::store()` → `$allowed[] = 'xxx';`
+3. `Checkout.jsx` → নতুন গেটওয়ে কার্ড UI (bkash ব্লক কপি করে)
+4. `.env`-এ গেটওয়ে API কি
+
+### ফিচার ফ্ল্যাগ ফ্রন্টএন্ডে ব্যবহার
+
+```jsx
+const { shop } = usePage().props;
+{shop.features.coupon && <CouponInput />}
+{shop.features.wishlist && <WishlistButton />}
+```
+
+---
+
+## 🎨 থিম-ফ্রেন্ডলি CSS
+
+সব রং CSS ভেরিয়েবল দিয়ে চলে — থিম বদলাতে শুধু DB ভ্যালু বদলান:
+
+```css
+:root {
+    --pri: #17463a;   /* admin প্যানেল থেকে ডায়নামিক */
+    --acc: #e9a820;
+}
+.btn   { background: var(--pri); }
+.badge { background: var(--acc); }
+```
+
+---
+
+## 📦 ক্লায়েন্ট হ্যান্ডওভার চেকলিস্ট
+
+- [ ] `.env`: `APP_NAME`, `APP_URL`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` বদলান
+- [ ] `migrate:fresh --seed` চালিয়ে ডেমো রিসেট করুন
+- [ ] অ্যাডমিন → সাইট সেটিংস → ক্লায়েন্টের লোগো/ফেভিকন/কালার/কন্টাক্ট সেট করুন
+- [ ] পেমেন্ট গেটওয়ে টগল + বিকাশ/নগদ নম্বর সেট করুন
+- [ ] ডেলিভারি চার্জ ক্লায়েন্টের নিয়ম অনুযায়ী সেট করুন
+- [ ] Demo Data ট্যাব → **Clean Handover** চালিয়ে টেস্ট ডাটা মুছুন
+- [ ] `php artisan config:cache && php artisan route:cache`
+
+---
+
+## 🛠️ Tech Stack
+
+Laravel 12 · Inertia 2 · React 19 · Tailwind-free custom CSS (variable-driven) · Vite 6
+
+---
+
+## 📄 License
+
+MIT — যেকোনো ক্লায়েন্ট প্রজেক্টে ব্যবহারযোগ্য।

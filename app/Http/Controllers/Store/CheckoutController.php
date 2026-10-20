@@ -53,18 +53,34 @@ class CheckoutController extends Controller
 
     public function store(Request $request)
     {
-        $d = $request->validate([
+        $allowed = [];
+        if (\App\Models\Setting::getBool('payment_cod_enabled', true)) $allowed[] = 'cod';
+        if (\App\Models\Setting::getBool('payment_bkash_enabled', true)) $allowed[] = 'bkash';
+        if (\App\Models\Setting::getBool('payment_nagad_enabled', false)) $allowed[] = 'nagad';
+        if (\App\Models\Setting::getBool('payment_sslcommerz_enabled', false)) $allowed[] = 'sslcommerz';
+        if (empty($allowed)) $allowed = ['cod'];
+
+        $rules = [
             'name' => 'required|string|min:3|max:100',
             'phone' => ['required', 'regex:/^01[3-9]\d{8}$/'],
             'address' => 'required|string|min:10|max:500',
             'zone' => 'required|in:in,out',
-            'payment_method' => 'required|in:cod',
+            'payment_method' => ['required', 'in:'.implode(',', $allowed)],
+            'trx_id' => 'nullable|string|max:40',
             'coupon' => 'nullable|string|max:30',
             'items' => 'required|array|min:1|max:30',
             'items.*.id' => 'required|integer',
             'items.*.variation_id' => 'nullable|integer',
             'items.*.qty' => 'required|integer|min:1|max:20',
-        ], self::MESSAGES);
+        ];
+
+        if (in_array($request->input('payment_method'), ['bkash', 'nagad'])) {
+            $rules['trx_id'] = 'required|string|min:4|max:40';
+        }
+
+        $d = $request->validate($rules, array_merge(self::MESSAGES, [
+            'trx_id.required' => 'পেমেন্টের ট্রানজেকশন আইডি (TrxID) দিন',
+        ]));
 
         $productIds = collect($d['items'])->pluck('id')->unique()->all();
         $products = Product::active()->with('variations')->whereIn('id', $productIds)->get()->keyBy('id');
@@ -115,8 +131,8 @@ class CheckoutController extends Controller
                 'phone' => $d['phone'],
                 'address' => $d['address'],
                 'zone' => $d['zone'],
-                'payment_method' => 'cod',
-                'trx_id' => null,
+                'payment_method' => $d['payment_method'],
+                'trx_id' => $d['trx_id'] ?? null,
                 'subtotal' => $subtotal,
                 'delivery_fee' => $fee,
                 'discount' => $discount,

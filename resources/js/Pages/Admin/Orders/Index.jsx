@@ -2,6 +2,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import AdminLayout from '../../../Layouts/AdminLayout';
 import { PAY, bn, clean, tk } from '../../../lib/format';
+import { toast } from '../../../lib/toast';
 
 const PRIMARY_STATUSES = ['pending', 'confirmed', 'cancelled'];
 const STATUS_LABELS = {
@@ -29,7 +30,16 @@ export default function Index({ orders, counts, filters }) {
     const total = Object.values(counts).reduce((a, b) => a + Number(b), 0);
 
     const updateStatus = (orderId, newStatus) => {
-        router.patch(`${pfx}/orders/${orderId}/status`, { status: newStatus }, { preserveScroll: true });
+        router.patch(
+            `${pfx}/orders/${orderId}/status`,
+            { status: newStatus },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success(`✓ অর্ডার স্ট্যাটাস আপডেট হয়েছে: ${STATUS_LABELS[newStatus] || newStatus}`);
+                },
+            }
+        );
     };
 
     return (

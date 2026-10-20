@@ -2,6 +2,7 @@ import { Head, Link, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import StoreLayout from '../../Layouts/StoreLayout';
 import { PAY, bn, tk } from '../../lib/format';
+import { toast } from '../../lib/toast';
 
 export default function Thanks({ order: o }) {
     const { shop } = usePage().props;
@@ -27,7 +28,8 @@ export default function Thanks({ order: o }) {
         try {
             await navigator.clipboard.writeText(text);
             setCopied(true);
-            setTimeout(() => setCopied(false), 1800);
+            toast.success('✓ অর্ডারের বিবরণ ক্লিপবোর্ডে কপি হয়েছে');
+            setTimeout(() => setCopied(false), 2200);
         } catch {
             window.prompt('কপি করুন', text);
         }

@@ -29,7 +29,24 @@ export default function Index({ products }) {
                             </small>
                         )}
                     </div>
-                    <button className={`stk ${p.in_stock ? 'in' : 'out'}`} style={{ cursor: 'pointer', padding: '4px 12px' }} onClick={() => router.patch(`${pfx}/products/${p.id}/stock`, {}, { preserveScroll: true })}>
+                    <button
+                        role="switch"
+                        aria-checked={p.in_stock}
+                        className={`stk ${p.in_stock ? 'in' : 'out'}`}
+                        style={{ cursor: 'pointer', padding: '4px 14px', display: 'inline-flex', alignItems: 'center', gap: 8, border: 'none', borderRadius: 999 }}
+                        title={p.in_stock ? 'ক্লিক করলে স্টক শেষ হবে' : 'ক্লিক করলে স্টকে আছে হবে'}
+                        onClick={() => router.patch(`${pfx}/products/${p.id}/stock`, {}, { preserveScroll: true })}
+                    >
+                        <span style={{
+                            width: 30, height: 16, borderRadius: 999, position: 'relative',
+                            background: 'rgba(255,255,255,.35)', display: 'inline-block', flexShrink: 0,
+                        }}>
+                            <span style={{
+                                position: 'absolute', top: 2, left: p.in_stock ? 16 : 2,
+                                width: 12, height: 12, borderRadius: 999, background: '#fff',
+                                transition: 'left .15s ease', boxShadow: '0 1px 2px rgba(0,0,0,.25)',
+                            }} />
+                        </span>
                         {p.in_stock ? 'স্টকে আছে' : 'স্টক নেই'}
                     </button>
                     <a className="mini" href={`${siteUrl}/product/${p.slug}`} target="_blank" rel="noopener">দেখুন</a>

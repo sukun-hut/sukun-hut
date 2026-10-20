@@ -4,6 +4,7 @@ import Thumb from '../../Components/Thumb';
 import StoreLayout from '../../Layouts/StoreLayout';
 import { useCart } from '../../lib/cart';
 import { bn, csrf, delivery, hue, tk } from '../../lib/format';
+import { toast } from '../../lib/toast';
 
 export default function Checkout({ buy }) {
     const { shop } = usePage().props;
@@ -11,12 +12,21 @@ export default function Checkout({ buy }) {
     const [buyQty, setBuyQty] = useState(1);
     const [pct, setPct] = useState(0);
     const [cMsg, setCMsg] = useState('');
+    const initialPayment = shop.payment_cod_enabled
+        ? 'cod'
+        : shop.payment_bkash_enabled
+        ? 'bkash'
+        : shop.payment_nagad_enabled
+        ? 'nagad'
+        : 'cod';
+
     const form = useForm({
         name: '',
         phone: '',
         address: '',
         zone: 'in',
-        payment_method: 'cod',
+        payment_method: initialPayment,
+        trx_id: '',
         coupon: '',
     });
     const d = form.data;
@@ -46,6 +56,10 @@ export default function Checkout({ buy }) {
     const total = sub + fee - disc;
 
     const applyCoupon = async () => {
+        if (!d.coupon || !d.coupon.trim()) {
+            toast.error('কুপন কোড লিখুন');
+            return;
+        }
         try {
             const r = await fetch('/coupon', {
                 method: 'POST',
@@ -58,17 +72,24 @@ export default function Checkout({ buy }) {
             });
             const j = await r.json();
             setPct(j.percent || 0);
-            setCMsg(j.valid ? `${bn(j.percent)}% ছাড় প্রয়োগ হয়েছে` : 'কুপন কোডটি সঠিক নয়');
+            if (j.valid) {
+                setCMsg(`${bn(j.percent)}% ছাড় প্রয়োগ হয়েছে`);
+                toast.success(`✓ কুপন কোড সফল! ${bn(j.percent)}% ছাড় পেয়েছেন`);
+            } else {
+                setCMsg('কুপন কোডটি সঠিক নয়');
+                toast.error('✕ কুপন কোডটি সঠিক নয় বা মেয়াদ শেষ');
+            }
         } catch {
             setCMsg('কুপন যাচাই করা যায়নি');
+            toast.error('✕ কুপন যাচাই করা যায়নি');
         }
     };
 
     const submit = (e) => {
         e.preventDefault();
+        form.clearErrors();
         form.transform((x) => ({
             ...x,
-            payment_method: 'cod',
             items: lines.map((l) => ({
                 id: l.id,
                 variation_id: l.variation_id || null,
@@ -77,6 +98,17 @@ export default function Checkout({ buy }) {
         })).post('/checkout', {
             onSuccess: () => {
                 if (!buy) cart.clear();
+            },
+            onError: (errors) => {
+                const keys = Object.keys(errors || {});
+                if (keys.length) {
+                    // Scroll to first error field so the customer sees what went wrong
+                    const el = document.getElementById(keys[0]);
+                    (el || document.querySelector('.er:not(:empty)'))?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } else {
+                    // Empty errors = network / CSRF(419) / server failure — show visible feedback
+                    setCMsg('দুঃখিত! অর্ডার সম্পন্ন করা যায়নি। পেজ রিফ্রেশ করে আবার চেষ্টা করুন।');
+                }
             },
         });
     };
@@ -156,90 +188,183 @@ export default function Checkout({ buy }) {
                     <option value="out">ঢাকার বাইরে ({shop.delivery_out ? tk(shop.delivery_out) : 'ফ্রি'})</option>
                 </select>
 
-                {/* PAYMENT METHOD: ONLY COD ACTIVE, BKASH/NAGAD DISABLED */}
-                <label style={{ fontWeight: 600, marginTop: 14 }}>পেমেন্ট পদ্ধতি</label>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {/* DYNAMIC PAYMENT METHOD GATEWAYS */}
+                <label style={{ fontWeight: 600, marginTop: 14 }}>পেমেন্ট পদ্ধতি *</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {shop.payment_cod_enabled && (
+                        <div
+                            onClick={() => form.setData('payment_method', 'cod')}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 12,
+                                padding: '12px 14px',
+                                border: d.payment_method === 'cod' ? '2px solid var(--pri)' : '1px solid var(--line)',
+                                borderRadius: 10,
+                                background: d.payment_method === 'cod' ? 'var(--soft)' : 'var(--card)',
+                                cursor: 'pointer',
+                            }}
+                        >
+                            <input
+                                type="radio"
+                                id="pm_cod"
+                                name="payment_method"
+                                checked={d.payment_method === 'cod'}
+                                onChange={() => form.setData('payment_method', 'cod')}
+                                style={{ width: 'auto', margin: 0, cursor: 'pointer' }}
+                            />
+                            <label htmlFor="pm_cod" style={{ margin: 0, flex: 1, cursor: 'pointer' }}>
+                                <strong style={{ fontSize: 16, color: 'var(--pri)', display: 'block' }}>
+                                    ক্যাশ অন ডেলিভারি (Cash on Delivery)
+                                </strong>
+                                <small style={{ color: 'var(--mut)' }}>
+                                    পণ্য হাতে পেয়ে মূল্য পরিশোধ করুন। কোনো অগ্রিম পেমেন্টের প্রয়োজন নেই।
+                                </small>
+                            </label>
+                        </div>
+                    )}
+
+                    {shop.payment_bkash_enabled && (
+                        <div
+                            onClick={() => form.setData('payment_method', 'bkash')}
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 8,
+                                padding: '12px 14px',
+                                border: d.payment_method === 'bkash' ? '2px solid #e2136e' : '1px solid var(--line)',
+                                borderRadius: 10,
+                                background: d.payment_method === 'bkash' ? '#fdf2f7' : 'var(--card)',
+                                cursor: 'pointer',
+                            }}
+                        >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                <input
+                                    type="radio"
+                                    id="pm_bkash"
+                                    name="payment_method"
+                                    checked={d.payment_method === 'bkash'}
+                                    onChange={() => form.setData('payment_method', 'bkash')}
+                                    style={{ width: 'auto', margin: 0, cursor: 'pointer' }}
+                                />
+                                <label htmlFor="pm_bkash" style={{ margin: 0, flex: 1, cursor: 'pointer' }}>
+                                    <strong style={{ fontSize: 16, color: '#e2136e', display: 'block' }}>
+                                        বিকাশ পেমেন্ট (bKash)
+                                    </strong>
+                                    <small style={{ color: 'var(--mut)' }}>
+                                        বিকাশের মাধ্যমে সরাসরি পেমেন্ট বা সেন্ড মানি করুন।
+                                    </small>
+                                </label>
+                            </div>
+                            {d.payment_method === 'bkash' && (
+                                <div style={{ background: '#fff', border: '1px solid #f9c2db', padding: '10px 12px', borderRadius: 8, marginTop: 4 }}>
+                                    <p style={{ margin: '0 0 6px', fontSize: 13, color: '#12261f' }}>
+                                        বিকাশ নম্বর: <strong style={{ color: '#e2136e', fontSize: 15 }}>{shop.bkash_number || shop.phone}</strong> (Send Money / Payment)
+                                    </p>
+                                    <p style={{ margin: '0 0 8px', fontSize: 12.5, color: 'var(--mut)' }}>
+                                        পেমেন্ট সম্পন্ন করে নিচের বক্সে আপনার বিকাশ TrxID (Transaction ID) লিখুন:
+                                    </p>
+                                    <input
+                                        type="text"
+                                        placeholder="যেমন: 9J7K3X1L"
+                                        value={d.trx_id}
+                                        onChange={(e) => form.setData('trx_id', e.target.value)}
+                                        style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e2136e' }}
+                                    />
+                                    <div className="er">{form.errors.trx_id}</div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {shop.payment_nagad_enabled && (
+                        <div
+                            onClick={() => form.setData('payment_method', 'nagad')}
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 8,
+                                padding: '12px 14px',
+                                border: d.payment_method === 'nagad' ? '2px solid #f7941d' : '1px solid var(--line)',
+                                borderRadius: 10,
+                                background: d.payment_method === 'nagad' ? '#fffaf2' : 'var(--card)',
+                                cursor: 'pointer',
+                            }}
+                        >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                <input
+                                    type="radio"
+                                    id="pm_nagad"
+                                    name="payment_method"
+                                    checked={d.payment_method === 'nagad'}
+                                    onChange={() => form.setData('payment_method', 'nagad')}
+                                    style={{ width: 'auto', margin: 0, cursor: 'pointer' }}
+                                />
+                                <label htmlFor="pm_nagad" style={{ margin: 0, flex: 1, cursor: 'pointer' }}>
+                                    <strong style={{ fontSize: 16, color: '#f7941d', display: 'block' }}>
+                                        নগদ পেমেন্ট (Nagad)
+                                    </strong>
+                                    <small style={{ color: 'var(--mut)' }}>
+                                        নগদের মাধ্যমে সরাসরি পেমেন্ট বা সেন্ড মানি করুন।
+                                    </small>
+                                </label>
+                            </div>
+                            {d.payment_method === 'nagad' && (
+                                <div style={{ background: '#fff', border: '1px solid #fed7aa', padding: '10px 12px', borderRadius: 8, marginTop: 4 }}>
+                                    <p style={{ margin: '0 0 6px', fontSize: 13, color: '#12261f' }}>
+                                        নগদ নম্বর: <strong style={{ color: '#f7941d', fontSize: 15 }}>{shop.nagad_number || shop.phone}</strong> (Send Money / Payment)
+                                    </p>
+                                    <p style={{ margin: '0 0 8px', fontSize: 12.5, color: 'var(--mut)' }}>
+                                        পেমেন্ট সম্পন্ন করে নিচের বক্সে আপনার নগদ TrxID (Transaction ID) লিখুন:
+                                    </p>
+                                    <input
+                                        type="text"
+                                        placeholder="যেমন: 7H8B9N2X"
+                                        value={d.trx_id}
+                                        onChange={(e) => form.setData('trx_id', e.target.value)}
+                                        style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #f7941d' }}
+                                    />
+                                    <div className="er">{form.errors.trx_id}</div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+                <div className="er">{form.errors.payment_method}</div>
+
+                {shop.features?.coupon && (
+                    <>
+                        <label htmlFor="coupon" style={{ fontWeight: 600, marginTop: 14 }}>কুপন কোড (থাকলে)</label>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                            <input
+                                id="coupon"
+                                value={d.coupon}
+                                onChange={(e) => form.setData('coupon', e.target.value)}
+                                placeholder="কুপন কোড লিখুন"
+                            />
+                            <button type="button" className="btn o" onClick={applyCoupon} style={{ flex: 'none' }}>
+                                প্রয়োগ
+                            </button>
+                        </div>
+                        <div className="er" style={{ color: pct ? 'var(--pri)' : undefined }}>{cMsg}</div>
+                    </>
+                )}
+
+                {cMsg && (
                     <div
                         style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 12,
-                            padding: '12px 14px',
-                            border: '2px solid var(--pri)',
+                            background: pct ? 'var(--soft)' : '#fdecea',
+                            color: pct ? 'var(--pri)' : '#c0392b',
+                            border: `1px solid ${pct ? 'var(--line)' : '#f5c6cb'}`,
                             borderRadius: 10,
-                            background: 'var(--soft)',
+                            padding: '10px 14px',
+                            fontWeight: 500,
+                            marginTop: 12,
                         }}
                     >
-                        <input
-                            type="radio"
-                            id="pm_cod"
-                            name="payment_method"
-                            checked={true}
-                            readOnly
-                            style={{ width: 'auto', margin: 0 }}
-                        />
-                        <label htmlFor="pm_cod" style={{ margin: 0, flex: 1, cursor: 'pointer' }}>
-                            <strong style={{ fontSize: 16, color: 'var(--pri)', display: 'block' }}>
-                                ক্যাশ অন ডেলিভারি (Cash on Delivery)
-                            </strong>
-                            <small style={{ color: 'var(--mut)' }}>
-                                পণ্য হাতে পেয়ে মূল্য পরিশোধ করুন। কোনো অগ্রিম পেমেন্টের প্রয়োজন নেই।
-                            </small>
-                        </label>
-                        <span style={{ background: 'var(--pri)', color: '#fff', fontSize: 12, padding: '3px 10px', borderRadius: 99, fontWeight: 600 }}>
-                            সচল
-                        </span>
+                        {cMsg}
                     </div>
-
-                    <div style={{ display: 'flex', gap: 10 }}>
-                        <div
-                            style={{
-                                flex: 1,
-                                padding: '10px 12px',
-                                border: '1px dashed var(--line)',
-                                borderRadius: 10,
-                                background: 'var(--card)',
-                                opacity: 0.6,
-                                cursor: 'not-allowed',
-                            }}
-                        >
-                            <span style={{ fontWeight: 600 }}>বিকাশ (bKash)</span>
-                            <small style={{ display: 'block', color: '#c0392b', fontSize: 11, fontWeight: 500 }}>
-                                আপাতত বন্ধ রয়েছে
-                            </small>
-                        </div>
-                        <div
-                            style={{
-                                flex: 1,
-                                padding: '10px 12px',
-                                border: '1px dashed var(--line)',
-                                borderRadius: 10,
-                                background: 'var(--card)',
-                                opacity: 0.6,
-                                cursor: 'not-allowed',
-                            }}
-                        >
-                            <span style={{ fontWeight: 600 }}>নগদ (Nagad)</span>
-                            <small style={{ display: 'block', color: '#c0392b', fontSize: 11, fontWeight: 500 }}>
-                                আপাতত বন্ধ রয়েছে
-                            </small>
-                        </div>
-                    </div>
-                </div>
-
-                <label htmlFor="coupon" style={{ fontWeight: 600, marginTop: 14 }}>কুপন কোড (থাকলে)</label>
-                <div style={{ display: 'flex', gap: 8 }}>
-                    <input
-                        id="coupon"
-                        value={d.coupon}
-                        onChange={(e) => form.setData('coupon', e.target.value)}
-                        placeholder="কুপন কোড লিখুন"
-                    />
-                    <button type="button" className="btn o" onClick={applyCoupon} style={{ flex: 'none' }}>
-                        প্রয়োগ
-                    </button>
-                </div>
-                <div className="er" style={{ color: pct ? 'var(--pri)' : undefined }}>{cMsg}</div>
+                )}
 
                 <div className="sm">
                     <div>সাবটোটাল<span>{tk(sub)}</span></div>

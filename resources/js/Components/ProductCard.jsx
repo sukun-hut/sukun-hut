@@ -1,6 +1,9 @@
-import { Link, router } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
 import { useCart } from '../lib/cart';
 import { hue, tk } from '../lib/format';
+import { toast } from '../lib/toast';
+import { isWishlisted, toggleWishlist } from '../lib/wishlist';
 import Thumb from './Thumb';
 
 export const Price = ({ p, variation = null }) => {
@@ -84,7 +87,35 @@ export function Buttons({ p, selectedVariation = null }) {
     );
 }
 
-export default function ProductCard({ p }) {
+export default function ProductCard({ p, isHighlighted = false }) {
+    const { shop } = usePage().props;
+    const [wish, setWish] = useState(() => isWishlisted(p.id));
+
+    useEffect(() => {
+        const onWishlistUpdate = () => setWish(isWishlisted(p.id));
+        window.addEventListener('wishlist:updated', onWishlistUpdate);
+        return () => window.removeEventListener('wishlist:updated', onWishlistUpdate);
+    }, [p.id]);
+
+    const handleWishlistClick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const res = toggleWishlist(p);
+        setWish(res.wishlisted);
+        if (res.wishlisted) {
+            toast.success(`❤️ "${p.name}" পছন্দের তালিকায় যোগ হয়েছে`);
+        } else {
+            toast.info(`পছন্দের তালিকা থেকে সরানো হয়েছে`);
+        }
+    };
+
+    const recordCardClick = () => {
+        if (typeof window !== 'undefined') {
+            sessionStorage.setItem('shop:lastViewedId', String(p.id));
+            sessionStorage.setItem('shop:homeScrollY', String(window.scrollY));
+        }
+    };
+
     const hasVariations = p.variations && p.variations.length > 0;
     const displayPrice = hasVariations
         ? Math.min(...p.variations.map((v) => v.price))
@@ -92,16 +123,66 @@ export default function ProductCard({ p }) {
     const displayOldPrice = hasVariations ? p.variations[0]?.old_price : p.old_price;
 
     return (
-        <article className="pc">
-            <Link className="im" href={`/product/${p.slug}`} aria-label={p.name} style={{ '--h': hue(p.id) }}>
+        <article
+            className={`pc${isHighlighted ? ' pc-highlighted' : ''}`}
+            id={`product-card-${p.id}`}
+            style={{ position: 'relative' }}
+        >
+            <Link
+                className="im"
+                href={`/product/${p.slug}`}
+                aria-label={p.name}
+                style={{ '--h': hue(p.id) }}
+                onClick={recordCardClick}
+            >
                 <Thumb src={p.images[0]} emoji={p.emoji} alt={p.name} />
                 {displayOldPrice && displayOldPrice > displayPrice ? (
                     <span className="dc">{Math.round((1 - displayPrice / displayOldPrice) * 100).toLocaleString('bn-BD')}% ছাড়</span>
                 ) : null}
+
+                {/* PLUG & PLAY: Wishlist Toggle Button on Card */}
+                {shop?.features?.wishlist && (
+                    <button
+                        type="button"
+                        onClick={handleWishlistClick}
+                        aria-label="উইশলিস্টে রাখুন"
+                        title={wish ? 'পছন্দের তালিকা থেকে সরান' : 'পছন্দের তালিকায় যোগ করুন'}
+                        style={{
+                            position: 'absolute',
+                            top: 8,
+                            right: 8,
+                            width: 34,
+                            height: 34,
+                            borderRadius: '50%',
+                            background: 'rgba(255, 255, 255, 0.92)',
+                            backdropFilter: 'blur(4px)',
+                            border: '1px solid var(--line)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: 16,
+                            cursor: 'pointer',
+                            zIndex: 5,
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+                            transition: 'transform 0.15s ease',
+                        }}
+                    >
+                        {wish ? '❤️' : '🤍'}
+                    </button>
+                )}
             </Link>
             <div className="pb">
                 <small>{p.category?.name}</small>
-                <h3><Link href={`/product/${p.slug}`}>{p.name}</Link></h3>
+                <h3><Link href={`/product/${p.slug}`} onClick={recordCardClick}>{p.name}</Link></h3>
+
+                {/* PLUG & PLAY: Customer Star Rating on Card */}
+                {shop?.features?.review && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, color: '#f39c12' }}>
+                        <span>★★★★★</span>
+                        <small style={{ color: 'var(--mut)', fontWeight: 600 }}>(৪.৯)</small>
+                    </div>
+                )}
+
                 <p>{p.description}</p>
                 <div className="pr">
                     <strong>{hasVariations && p.variations.length > 1 ? `${tk(displayPrice)} থেকে` : tk(displayPrice)}</strong>

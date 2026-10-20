@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
+import { toast as appToast } from './toast';
 
 const KEY = 'sh_cart_v3';
 const Ctx = createContext(null);
@@ -68,10 +69,14 @@ export function CartProvider({ children }) {
             ];
         });
         setToast({ m: 'কার্টে যোগ হয়েছে', on: true });
+        appToast.success(`✓ "${p.name}" কার্টে যোগ হয়েছে`);
     };
 
     const setQty = (key, q) => {
         const targetKey = String(key);
+        if (q <= 0) {
+            appToast.info('কার্ট থেকে পণ্য সরানো হয়েছে');
+        }
         setItems((cur) =>
             cur
                 .filter((i) => (i.key || String(i.id)) !== targetKey || q > 0)
